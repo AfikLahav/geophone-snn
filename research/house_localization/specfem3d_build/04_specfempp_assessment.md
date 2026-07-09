@@ -99,3 +99,39 @@ voxel-house experiment (§4), and a head start for the switch. Failure costs ~1�
 
 *Related: `00_what_specfem3d_needs.md` (mesh requirements), `01–03` (Fortran SPECFEM3D
 build specs — unchanged as plan of record), `12_specfem3d_adoption.md`.*
+
+---
+
+## UPDATE (same day) — PR-level check: is code already waiting?
+
+Deeper look at the actual PR/issue threads corrects and sharpens §2:
+
+**#1950 is not a bare issue — it is an OPEN PR with 3,042 lines of real code** (opened
+2026-06-22): a full `scripts/gmsh2meshfem/dim3/` Python exporter (`exporter.py`, model/
+boundary/faces, `material_properties.py`, **`nonconforming_interfaces.py`**) plus the 3-D
+`gmshlayerbuilder`. This is effectively *their* version of the Gmsh→SPECFEM converter we
+planned to hand-write for Fortran SPECFEM3D (doc 01). **However:** it is currently
+`mergeable: false` (conflicts with `devel`), has no reviews, and last moved 2026-06-25.
+
+**The full external-mesh path needs THREE pieces, and only one is in PR:**
+1. **Exporter** (Gmsh → meshfem files): PR #1950 — code exists, stalled on rebase/review.
+2. **Ingester** (`xdecompose_mesh` 3-D port): issue **#1692 — not started** (unassigned,
+   0 comments since 2026-03). Bounded task though — its body says *"copy from
+   `mpi_ref/decompose_mesh`"*, i.e. reference code exists and needs porting, not invention.
+3. **Solver-side nonconforming 3-D** (hanging-node multi-resolution — parent issue #1911's
+   acceptance criteria): PR **#1941 active** (+ test PR #1908). Notably this would give
+   **true multi-resolution meshes (fine walls / coarse soil) via nonconforming interfaces**
+   — *better* than the doubling-brick approach in our Fortran plan.
+
+**Correction:** #1692's `decompose_mesh` is the mesh-format/MPI decomposer, needed for the
+external path per #1911 ("readable into `xdecompose_mesh`"), not merely an MPI feature.
+
+**Effort read:** this is *assembly of existing reference pieces*, not greenfield — but the
+critical PR is stalled and the ingester unstarted. Realistic arrival: **weeks if the
+maintainers push it, months otherwise.** Levers available to us: (a) comment on
+#1911/#1950 asking timeline (community project, actively working this exact area);
+(b) contribute the #1692 port ourselves (bounded, reference exists); (c) build against the
+PR branch — not recommended on a fast-moving unreviewed base.
+
+**Watch list (the concrete switch trigger, refined):** merge of **#1950 → #1692 → #1941**,
+in that order of signal value.
