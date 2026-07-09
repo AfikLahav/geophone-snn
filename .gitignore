@@ -44,3 +44,14 @@ tools/
 # --- Analysis caches ---
 gap_study/model_review/synth_cache.npz
 gap_study/model_review/real_cache.npz
+
+# --- house-sim datasets (large external binaries) ---
+datasets/resplan/*.pkl
+datasets/osm_israel_buildings/*.gpkg
+*.pkl
+*.gpkg
+# --- mesh prototype artifacts (regenerable) ---
+mesh_prototype/*.png
+mesh_prototype/*.msh
+mesh_prototype/*.vtk
+mesh_prototype/__pycache__/
