@@ -1,0 +1,22 @@
+{
+ "per_class": {
+  "human": {
+   "synth_mV": 2.5438316816156163,
+   "real_units": 0.02802420873194933,
+   "ratio": 0.011016534204869576
+  },
+  "vehicle": {
+   "synth_mV": 4.420445389606904,
+   "real_units": 0.12948128581047058,
+   "ratio": 0.029291456945695904
+  },
+  "nothing": {
+   "synth_mV": 0.28173521982882616,
+   "real_units": 0.011112809181213379,
+   "ratio": 0.03944416032885483
+  }
+ },
+ "ratio_cv": 0.4424596589716026,
+ "geomean_scale": 0.02334835164407576,
+ "verdict": "class-DEPENDENT -> genuine level differences, not a single units factor"
+}

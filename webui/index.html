@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" data-theme="b">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GeoSense — Ground Vibration Detection</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/themes.css" />
+</head>
+<body>
+  <!-- texture / CRT overlays (toggled per theme via CSS) -->
+  <div class="fx-grain" aria-hidden="true"></div>
+  <div class="fx-scanlines" aria-hidden="true"></div>
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26">
+          <circle cx="16" cy="16" r="2.4" class="mk-core" />
+          <circle cx="16" cy="16" r="7"  class="mk-ring" />
+          <circle cx="16" cy="16" r="12" class="mk-ring mk-ring-2" />
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">GeoSense</span>
+        <span class="brand-sub">ground-vibration detection</span>
+      </span>
+    </div>
+
+    <div class="controls">
+      <div class="seg" id="sourceToggle" role="group" aria-label="Signal source">
+        <button class="seg-btn is-active" data-source="sim">Simulated</button>
+        <button class="seg-btn" data-source="dataset">Dataset</button>
+        <button class="seg-btn" data-source="geo">Geophone</button>
+      </div>
+
+      <button class="btn" id="playBtn" aria-label="Play / pause">
+        <span class="btn-ico" data-ico="pause"></span><span class="btn-label">Pause</span>
+      </button>
+      <button class="btn" id="newBtn">
+        <span class="btn-ico" data-ico="dice"></span><span class="btn-label">New&nbsp;scene</span>
+      </button>
+
+      <label class="speed">
+        <span>Speed</span>
+        <input type="range" id="speed" min="0.5" max="3" step="0.5" value="1" />
+        <span class="speed-val" id="speedVal">1.0×</span>
+      </label>
+
+      <div class="seg seg-theme" id="themeToggle" role="group" aria-label="Theme">
+        <button class="seg-btn" data-theme="a">Scope</button>
+        <button class="seg-btn is-active" data-theme="b">Console</button>
+        <button class="seg-btn" data-theme="c">Paper</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== STAGE ===================== -->
+  <main class="stage">
+    <!-- 2.5D scene -->
+    <section class="panel panel-scene">
+      <div class="panel-head">
+        <span class="panel-title">Field view</span>
+        <span class="panel-meta" id="sceneMeta">—</span>
+      </div>
+      <div class="scene-wrap">
+        <canvas id="scene"></canvas>
+        <div class="scene-overlay">
+          <div class="sig-head"><span class="sig-k">Signal strength</span><span class="sig-v" id="sigStrength">—</span></div>
+          <div class="sig-meter"><i id="sigMeterFill"></i></div>
+        </div>
+        <div class="scene-legend" id="sceneLegend"></div>
+      </div>
+    </section>
+
+    <!-- readout column: detection + histograms -->
+    <section class="readout-col">
+      <div class="panel panel-detect">
+        <div class="panel-head">
+          <span class="panel-title">Detection</span>
+          <span class="panel-meta" id="detMeta">monitoring</span>
+        </div>
+        <div class="detect-main">
+          <div class="detect-headline" id="detHeadline">All&nbsp;clear</div>
+          <div class="detect-sub" id="detSub">no source above threshold</div>
+        </div>
+        <div class="lamps" id="lamps"></div>
+        <div class="det-truth" id="detTruth" hidden>
+          <span class="dt-k">ground truth</span>
+          <span class="dt-v" id="detTruthVal">—</span>
+        </div>
+      </div>
+
+      <div class="panel panel-histo">
+        <div class="panel-head">
+          <span class="panel-title">Class probability</span>
+          <span class="panel-meta" id="histoMeta">window 2.0&nbsp;s</span>
+        </div>
+        <div class="acq"><i id="acqFill"></i></div>
+        <div class="histo-bars" id="histoBars"></div>
+        <div class="ribbon-wrap">
+          <div class="ribbon-head">
+            <span class="ribbon-title">Probability over time</span>
+            <span class="ribbon-legend" id="ribbonLegend"></span>
+          </div>
+          <canvas id="ribbon"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- signal strip -->
+    <section class="panel panel-signal">
+      <div class="panel-head">
+        <span class="panel-title">Live signal</span>
+        <span class="panel-meta" id="sigMeta">3.0&nbsp;s window · 1&nbsp;kHz</span>
+      </div>
+      <div class="signal-wrap">
+        <canvas id="signal"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== STATUS BAR ===================== -->
+  <footer class="statusbar">
+    <span class="st" id="stMode">SIMULATED</span>
+    <span class="st-dot" aria-hidden="true"></span>
+    <span class="st" id="stState">RUNNING</span>
+    <span class="st-spacer"></span>
+    <span class="st st-dim">window</span><span class="st" id="stWin">0</span>
+    <span class="st st-dim">SNR</span><span class="st" id="stSnr">—</span>
+    <span class="st st-dim">fps</span><span class="st" id="stFps">—</span>
+  </footer>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "geosense-ui-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GeoSense ground-vibration detection — UI prototype (simulated backend)",
+  "scripts": {
+    "start": "python -m http.server 5173"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0"
+  }
+}

@@ -1,0 +1,81 @@
+{
+ "synthetic_val": {
+  "A_pretrained": {
+   "AUROC_human": 0.689857533515049,
+   "AUROC_vehicle": 0.7581505817081162,
+   "AUROC_animal": 0.665873875101634,
+   "AUROC_human_gated": 0.8611966064704393,
+   "AUROC_vehicle_gated": 0.9472197347090714,
+   "AUROC_animal_gated": 0.8762864540593924,
+   "acc4": 0.6900653835220146,
+   "bal_acc4": 0.40373764880465135,
+   "recall": {
+    "human": 0.15929499863017868,
+    "vehicle": 0.2241170872238084,
+    "animal": 0.23466839124035502,
+    "nothing": 0.9968701181242634
+   }
+  },
+  "B_finetuned": {
+   "AUROC_human": 0.5649132133217847,
+   "AUROC_vehicle": 0.6841578188971005,
+   "AUROC_animal": 0.5933548767618475,
+   "AUROC_human_gated": 0.6728859030060528,
+   "AUROC_vehicle_gated": 0.8143415459598821,
+   "AUROC_animal_gated": 0.6988277725712623,
+   "acc4": 0.3202153810136954,
+   "bal_acc4": 0.332466429988886,
+   "recall": {
+    "human": 0.6520653861374083,
+    "vehicle": 0.29670499266918743,
+    "animal": 0.04894964542170287,
+    "nothing": 0.33214569572724534
+   }
+  },
+  "C_real_only_hvn": {
+   "AUROC_human": 0.5474302502361107,
+   "AUROC_vehicle": 0.6151111415338442,
+   "acc3_hvn": 0.4435854156584554,
+   "bal_acc3_hvn": 0.3930611531087624,
+   "recall": {
+    "human": 0.36418982679370493,
+    "vehicle": 0.33369344342413254,
+    "nothing": 0.48130018910844957
+   },
+   "note": "synthetic restricted to human/vehicle/nothing (real-only model has no animal head)"
+  },
+  "n_val_windows": 331157
+ },
+ "real_side": {
+  "finetune_5fold": {
+   "synth_pretrained_zeroshot_5fold_acc": 0.8375761336851222,
+   "synth_pretrained_finetuned_ens_5fold_acc": 0.9791705312010791,
+   "finetuned_std": 0.011199065939998146,
+   "ensemble_size": 5,
+   "per_fold_finetuned": [
+    0.9894,
+    0.9681,
+    0.9639,
+    0.9915,
+    0.9829
+   ],
+   "real_only_baseline_logreg": 0.986,
+   "real_only_baseline_hgb": 0.983,
+   "real_only_baseline_confound_clean_hgb": 0.937
+  },
+  "snn_real_baseline": {
+   "SNN_from_scratch_on_real_5fold": 0.9664054388872622,
+   "SNN_scratch_std": 0.014783072230789129,
+   "synth_pretrained_finetuned_5fold": 0.9791705312010791,
+   "finetune_std": 0.011199065939998146,
+   "logreg_ref": 0.986,
+   "hgb_ref": 0.983,
+   "ensemble": 5
+  }
+ },
+ "models_saved": [
+  "model_ema.pt (A)",
+  "model_finetuned.pt (B, best fold)",
+  "model_real_only.pt (C)"
+ ]
+}

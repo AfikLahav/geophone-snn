@@ -1,0 +1,36 @@
+{
+ "model": "S:\\ALL PROJECTS\\geophone sensor\\finals project\\finals project\\snn_v4_out\\E4_v41",
+ "threshold_free_auroc": {
+  "human_vs_nothing": 0.9553,
+  "vehicle_vs_nothing": 0.8871,
+  "human_vs_vehicle": 0.9041
+ },
+ "synth_calibrated_3way": {
+  "tau_human": 0.085,
+  "tau_vehicle": 0.053,
+  "accuracy": 0.8164,
+  "balanced_accuracy": 0.8099,
+  "recall": {
+   "human": 0.85,
+   "vehicle": 0.767,
+   "nothing": 0.813
+  },
+  "confusion_hvn": [
+   [
+    753,
+    43,
+    90
+   ],
+   [
+    19,
+    408,
+    105
+   ],
+   [
+    59,
+    116,
+    760
+   ]
+  ]
+ }
+}

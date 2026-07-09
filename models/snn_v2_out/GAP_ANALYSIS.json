@@ -1,0 +1,79 @@
+{
+ "faint_human_snr_band_dB": [
+  0,
+  8
+ ],
+ "synth_faint_human_median_snr": 4.300000190734863,
+ "real_missed_nearest_synth_class": {
+  "faint_human": 0.589,
+  "nothing": 0.402,
+  "clear_human": 0.009
+ },
+ "real_detected_nearest_synth_class": {
+  "clear_human": 0.513,
+  "faint_human": 0.471,
+  "nothing": 0.016
+ },
+ "top_gap_features": [
+  {
+   "feature": "log_rms",
+   "z_vs_synth_faint_human": -3.0675370693206787
+  },
+  {
+   "feature": "gust_mod",
+   "z_vs_synth_faint_human": 1.9964392185211182
+  },
+  {
+   "feature": "ar_2",
+   "z_vs_synth_faint_human": 1.9783802032470703
+  },
+  {
+   "feature": "spec_kurt",
+   "z_vs_synth_faint_human": 1.5610145330429077
+  },
+  {
+   "feature": "event_count",
+   "z_vs_synth_faint_human": 1.1665542125701904
+  },
+  {
+   "feature": "ar_1",
+   "z_vs_synth_faint_human": -1.1275087594985962
+  },
+  {
+   "feature": "wpe_12",
+   "z_vs_synth_faint_human": 1.1230324506759644
+  },
+  {
+   "feature": "spectral_crest",
+   "z_vs_synth_faint_human": 1.1063345670700073
+  },
+  {
+   "feature": "peak_to_peak",
+   "z_vs_synth_faint_human": -1.0756601095199585
+  },
+  {
+   "feature": "energy_human_peak",
+   "z_vs_synth_faint_human": -1.0395058393478394
+  },
+  {
+   "feature": "lfcc_6",
+   "z_vs_synth_faint_human": 1.037015676498413
+  },
+  {
+   "feature": "energy_mid_gap",
+   "z_vs_synth_faint_human": -1.0339632034301758
+  },
+  {
+   "feature": "env_cv",
+   "z_vs_synth_faint_human": -1.02272629737854
+  },
+  {
+   "feature": "energy_car_peak",
+   "z_vs_synth_faint_human": 0.9847157001495361
+  },
+  {
+   "feature": "energy_low_freq",
+   "z_vs_synth_faint_human": 0.9753805994987488
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+ "model": "S:\\ALL PROJECTS\\geophone sensor\\finals project\\finals project\\snn_v4_out\\E1_coupling_bump",
+ "threshold_free_auroc": {
+  "human_vs_nothing": 0.9672,
+  "vehicle_vs_nothing": 0.9138,
+  "human_vs_vehicle": 0.8715
+ },
+ "synth_calibrated_3way": {
+  "tau_human": 0.16,
+  "tau_vehicle": 0.131,
+  "accuracy": 0.8236,
+  "balanced_accuracy": 0.8172,
+  "recall": {
+   "human": 0.861,
+   "vehicle": 0.774,
+   "nothing": 0.816
+  },
+  "confusion_hvn": [
+   [
+    763,
+    52,
+    71
+   ],
+   [
+    35,
+    412,
+    85
+   ],
+   [
+    55,
+    117,
+    763
+   ]
+  ]
+ }
+}

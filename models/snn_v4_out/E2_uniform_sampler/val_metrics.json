@@ -1,0 +1,44 @@
+{
+ "per_head_auroc_ema": {
+  "human": 0.8561747177498928,
+  "animal": 0.8742395244158843,
+  "vehicle": 0.9408978505457753
+ },
+ "per_head_auroc_raw": {
+  "human": 0.8533302176958668,
+  "animal": 0.8714103254523525,
+  "vehicle": 0.938763384997674
+ },
+ "firing_rate": [
+  0.08542215824127197,
+  0.08920001983642578,
+  0.2181997299194336
+ ],
+ "dead_frac": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "gate_top": [
+  "comb_salience",
+  "heli_comb_salience",
+  "beat_depth",
+  "rain_impulse_rate",
+  "burst_efficiency",
+  "env_cv",
+  "highband_kurtosis",
+  "lfcc_1",
+  "zcr",
+  "lfcc_2",
+  "cad_harm2",
+  "lfcc_3",
+  "lfcc_5",
+  "line_mains",
+  "n_sharp_lines",
+  "lfcc_7",
+  "gust_mod",
+  "mean_burst_len",
+  "lfcc_4",
+  "activity_concentration"
+ ]
+}

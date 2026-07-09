@@ -1,0 +1,216 @@
+{
+ "human": [
+  {
+   "recording": "human.csv",
+   "window_idx": 549,
+   "rms": 0.01052002888172865,
+   "energy_human_peak": 0.0011156373657286167,
+   "prob": 0.13913258910179138
+  },
+  {
+   "recording": "human.csv",
+   "window_idx": 553,
+   "rms": 0.0159738939255476,
+   "energy_human_peak": 0.0009522648178972304,
+   "prob": 0.01741029880940914
+  }
+ ],
+ "vehicle": [
+  {
+   "recording": "car.csv",
+   "window_idx": 64,
+   "rms": 0.020295104011893272,
+   "energy_car_peak": 0.0016729095950722694,
+   "prob": 0.0009936662390828133
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 65,
+   "rms": 0.023793881759047508,
+   "energy_car_peak": 0.002416838426142931,
+   "prob": 0.018009327352046967
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 107,
+   "rms": 0.030448002740740776,
+   "energy_car_peak": 0.003675818210467696,
+   "prob": 0.0009440985741093755
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 110,
+   "rms": 0.03450804948806763,
+   "energy_car_peak": 0.0035651330836117268,
+   "prob": 0.0023308107629418373
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 151,
+   "rms": 0.02979392185807228,
+   "energy_car_peak": 0.004348759539425373,
+   "prob": 0.04974690079689026
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 152,
+   "rms": 0.01821320317685604,
+   "energy_car_peak": 0.0016006611986085773,
+   "prob": 0.000560773303732276
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 195,
+   "rms": 0.025739507749676704,
+   "energy_car_peak": 0.0035332220140844584,
+   "prob": 0.0032595526427030563
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 196,
+   "rms": 0.021617112681269646,
+   "energy_car_peak": 0.0027758083306252956,
+   "prob": 0.001492389477789402
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 197,
+   "rms": 0.020873410627245903,
+   "energy_car_peak": 0.003113473765552044,
+   "prob": 0.0004270063654985279
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 198,
+   "rms": 0.023244785144925117,
+   "energy_car_peak": 0.00409376434981823,
+   "prob": 0.0025205921847373247
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 241,
+   "rms": 0.040948353707790375,
+   "energy_car_peak": 0.0020291381515562534,
+   "prob": 0.007907658815383911
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 242,
+   "rms": 0.040280476212501526,
+   "energy_car_peak": 0.0020047840662300587,
+   "prob": 0.005280542187392712
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 284,
+   "rms": 0.028641922399401665,
+   "energy_car_peak": 0.003524728352203965,
+   "prob": 0.011014069430530071
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 285,
+   "rms": 0.020674629136919975,
+   "energy_car_peak": 0.0016190173337236047,
+   "prob": 0.000569956551771611
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 286,
+   "rms": 0.020884530618786812,
+   "energy_car_peak": 0.001759701524861157,
+   "prob": 8.394239557674155e-05
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 287,
+   "rms": 0.0253989789634943,
+   "energy_car_peak": 0.003519986057654023,
+   "prob": 0.008599808439612389
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 329,
+   "rms": 0.024640453979372978,
+   "energy_car_peak": 0.0017896065255627036,
+   "prob": 0.0036443627905100584
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 330,
+   "rms": 0.020365120843052864,
+   "energy_car_peak": 0.001545353326946497,
+   "prob": 8.672181138535962e-05
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 373,
+   "rms": 0.021296672523021698,
+   "energy_car_peak": 0.0017756238812580705,
+   "prob": 0.010670412331819534
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 375,
+   "rms": 0.016824612393975258,
+   "energy_car_peak": 0.0013481165515258908,
+   "prob": 0.0021434880327433348
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 418,
+   "rms": 0.025340460240840912,
+   "energy_car_peak": 0.0021271477453410625,
+   "prob": 0.0002552158257458359
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 419,
+   "rms": 0.025095319375395775,
+   "energy_car_peak": 0.0024012397043406963,
+   "prob": 0.0006327236769720912
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 463,
+   "rms": 0.022075533866882324,
+   "energy_car_peak": 0.0024369133170694113,
+   "prob": 0.0006216763285920024
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 464,
+   "rms": 0.02804696559906006,
+   "energy_car_peak": 0.0038688245695084333,
+   "prob": 0.011204567737877369
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 506,
+   "rms": 0.023441007360816002,
+   "energy_car_peak": 0.003336274065077305,
+   "prob": 0.0010705399326980114
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 507,
+   "rms": 0.020099198445677757,
+   "energy_car_peak": 0.00222730147652328,
+   "prob": 0.0003127929230686277
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 508,
+   "rms": 0.01854570396244526,
+   "energy_car_peak": 0.0023405388928949833,
+   "prob": 0.0002788714482448995
+  },
+  {
+   "recording": "car.csv",
+   "window_idx": 509,
+   "rms": 0.021900221705436707,
+   "energy_car_peak": 0.003182620508596301,
+   "prob": 0.0011209340300410986
+  }
+ ]
+}

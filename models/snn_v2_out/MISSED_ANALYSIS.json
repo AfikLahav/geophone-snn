@@ -1,0 +1,99 @@
+{
+ "thresholds": {
+  "human": 0.15,
+  "vehicle": 0.05,
+  "animal": 0.1
+ },
+ "human": {
+  "rms": {
+   "detected": {
+    "median": 0.029026977717876434,
+    "p90": 0.08741958588361741,
+    "n": 770
+   },
+   "missed": {
+    "median": 0.02211708389222622,
+    "p90": 0.04493915215134621,
+    "n": 107
+   },
+   "background": {
+    "median": 0.007376231253147125,
+    "p90": 0.020714012905955315,
+    "n": 631
+   }
+  },
+  "class_band": {
+   "feature": "energy_human_peak",
+   "detected": {
+    "median": 0.007154231425374746,
+    "p90": 0.029880858398973947,
+    "n": 770
+   },
+   "missed": {
+    "median": 0.0021407874301075935,
+    "p90": 0.00475129196420312,
+    "n": 107
+   },
+   "background": {
+    "median": 0.0006276171770878136,
+    "p90": 0.0012062826426699758,
+    "n": 631
+   }
+  },
+  "missed_frac_indistinguishable_from_bg": 0.018691588785046728,
+  "missed_band_above_bg_pvalue": 1.2381471192356405e-55,
+  "model_tracks_residual": {
+   "corr_prob_rms": -0.11012499126791675,
+   "corr_prob_band": 0.06788427996804659,
+   "missed_median_prob": 0.008684643544256687
+  }
+ },
+ "vehicle": {
+  "rms": {
+   "detected": {
+    "median": 0.14600107818841934,
+    "p90": 0.68754643201828,
+    "n": 426
+   },
+   "missed": {
+    "median": 0.02804696559906006,
+    "p90": 0.05126128494739534,
+    "n": 43
+   },
+   "background": {
+    "median": 0.02471796702593565,
+    "p90": 0.042943449690937996,
+    "n": 304
+   }
+  },
+  "class_band": {
+   "feature": "energy_car_peak",
+   "detected": {
+    "median": 0.018672090023756027,
+    "p90": 0.23779896646738052,
+    "n": 426
+   },
+   "missed": {
+    "median": 0.003336274065077305,
+    "p90": 0.01032093744724989,
+    "n": 43
+   },
+   "background": {
+    "median": 0.001765559776686132,
+    "p90": 0.00521637862548232,
+    "n": 304
+   }
+  },
+  "missed_frac_indistinguishable_from_bg": 0.6511627906976745,
+  "missed_band_above_bg_pvalue": 1.4774754487058635e-08,
+  "model_tracks_residual": {
+   "corr_prob_rms": 0.3986071201699172,
+   "corr_prob_band": 0.5597779458343737,
+   "missed_median_prob": 0.0036443627905100584
+  }
+ },
+ "flagged_likely_mislabeled_counts": {
+  "human": 2,
+  "vehicle": 28
+ }
+}

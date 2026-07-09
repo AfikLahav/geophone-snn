@@ -1,0 +1,36 @@
+{
+ "model": "S:\\ALL PROJECTS\\geophone sensor\\finals project\\finals project\\snn_v4_out\\E3_mild_mix",
+ "threshold_free_auroc": {
+  "human_vs_nothing": 0.9826,
+  "vehicle_vs_nothing": 0.9071,
+  "human_vs_vehicle": 0.8968
+ },
+ "synth_calibrated_3way": {
+  "tau_human": 0.173,
+  "tau_vehicle": 0.147,
+  "accuracy": 0.8619,
+  "balanced_accuracy": 0.835,
+  "recall": {
+   "human": 0.844,
+   "vehicle": 0.677,
+   "nothing": 0.984
+  },
+  "confusion_hvn": [
+   [
+    748,
+    6,
+    132
+   ],
+   [
+    3,
+    360,
+    169
+   ],
+   [
+    3,
+    12,
+    920
+   ]
+  ]
+ }
+}

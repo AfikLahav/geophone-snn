@@ -1,0 +1,16 @@
+{
+ "synth_pretrained_zeroshot_5fold_acc": 0.8375761336851222,
+ "synth_pretrained_finetuned_ens_5fold_acc": 0.9791705312010791,
+ "finetuned_std": 0.011199065939998146,
+ "ensemble_size": 5,
+ "per_fold_finetuned": [
+  0.9894,
+  0.9681,
+  0.9639,
+  0.9915,
+  0.9829
+ ],
+ "real_only_baseline_logreg": 0.986,
+ "real_only_baseline_hgb": 0.983,
+ "real_only_baseline_confound_clean_hgb": 0.937
+}

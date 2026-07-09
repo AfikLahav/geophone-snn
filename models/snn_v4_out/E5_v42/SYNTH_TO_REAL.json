@@ -1,0 +1,36 @@
+{
+ "model": "S:/ALL PROJECTS/geophone sensor/finals project/finals project/snn_v4_out/E5_v42",
+ "threshold_free_auroc": {
+  "human_vs_nothing": 0.9467,
+  "vehicle_vs_nothing": 0.9081,
+  "human_vs_vehicle": 0.9133
+ },
+ "synth_calibrated_3way": {
+  "tau_human": 0.093,
+  "tau_vehicle": 0.083,
+  "accuracy": 0.8283,
+  "balanced_accuracy": 0.8333,
+  "recall": {
+   "human": 0.848,
+   "vehicle": 0.861,
+   "nothing": 0.791
+  },
+  "confusion_hvn": [
+   [
+    751,
+    25,
+    110
+   ],
+   [
+    6,
+    458,
+    68
+   ],
+   [
+    39,
+    156,
+    740
+   ]
+  ]
+ }
+}

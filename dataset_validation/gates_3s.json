@@ -1,0 +1,21 @@
+{
+ "note": "theoretical matched-filter gates; d'=2.33->Pd50, 3.6->Pd90 @ Pfa 1%; T=3 s",
+ "T_s": 3.0,
+ "classes": {
+  "human": {
+   "tau_lo_db": -18.89,
+   "tau_hi_db": -15.11,
+   "band_hz": 70.0
+  },
+  "vehicle": {
+   "tau_lo_db": -13.44,
+   "tau_hi_db": -9.67,
+   "band_hz": 20.0
+  },
+  "animal": {
+   "tau_lo_db": -18.89,
+   "tau_hi_db": -15.11,
+   "band_hz": 70.0
+  }
+ }
+}

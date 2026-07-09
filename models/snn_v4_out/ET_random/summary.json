@@ -1,0 +1,30 @@
+{
+ "params": 220528,
+ "features": 104,
+ "T": 4,
+ "best_ema_mean_auroc": 0.8688920148593774,
+ "per_head_auroc_ema": {
+  "human": 0.8381611404697225,
+  "animal": 0.8486023748898124,
+  "vehicle": 0.9199125292185973
+ },
+ "firing_rate": [
+  0.08799099922180176,
+  0.1024320125579834,
+  0.25197792053222656
+ ],
+ "dead_frac": [
+  0.0,
+  0.0,
+  0.0
+ ],
+ "real_test": {
+  "FAR_on_nothing": {
+   "human_head_FA_rate_on_nothing": 0.0,
+   "vehicle_head_FA_rate_on_nothing": 0.0
+  },
+  "human_vs_vehicle_AUC": 0.9684524516709381,
+  "domain_classifier_AUC": 1.0,
+  "note": "1 session/class -> indicative, confound-aware; see REAL_FEATURE_ANALYSIS.md"
+ }
+}

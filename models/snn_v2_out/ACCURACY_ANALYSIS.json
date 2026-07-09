@@ -1,0 +1,50 @@
+{
+ "EMA_mean": {
+  "syn_val_4class_acc": 0.9432132518925346,
+  "real_acc_default_0.5": 0.8045048873778156,
+  "real_acc_syncal_thresholds": 0.8780280492987675,
+  "real_acc_oracle_threshold": 0.8631534211644709,
+  "oracle_thr": 0.2,
+  "thresholds_syncal": {
+   "human": 0.2,
+   "vehicle": 0.05,
+   "animal": 0.15
+  }
+ },
+ "EMA_last": {
+  "syn_val_4class_acc": 0.9498662439314376,
+  "real_acc_default_0.5": 0.8130046748831279,
+  "real_acc_syncal_thresholds": 0.8788780280492988,
+  "real_acc_oracle_threshold": 0.8665533361665958,
+  "oracle_thr": 0.1,
+  "thresholds_syncal": {
+   "human": 0.15,
+   "vehicle": 0.05,
+   "animal": 0.1
+  }
+ },
+ "raw_mean": {
+  "syn_val_4class_acc": 0.9449645325499878,
+  "real_acc_default_0.5": 0.7832554186145346,
+  "real_acc_syncal_thresholds": 0.8601784955376116,
+  "real_acc_oracle_threshold": 0.8427539311517213,
+  "oracle_thr": 0.15,
+  "thresholds_syncal": {
+   "human": 0.2,
+   "vehicle": 0.05,
+   "animal": 0.15
+  }
+ },
+ "raw_last": {
+  "syn_val_4class_acc": 0.9500148617853958,
+  "real_acc_default_0.5": 0.7896302592435189,
+  "real_acc_syncal_thresholds": 0.8601784955376116,
+  "real_acc_oracle_threshold": 0.8482787930301743,
+  "oracle_thr": 0.1,
+  "thresholds_syncal": {
+   "human": 0.15,
+   "vehicle": 0.05,
+   "animal": 0.1
+  }
+ }
+}

@@ -1,0 +1,54 @@
+[
+ {
+  "tag": "v3",
+  "n": 7225859,
+  "B_balance": 0.892,
+  "C_coverage": 0.333,
+  "N_class_stratum_V": 0.005,
+  "F_floor_frac": 0.919,
+  "F_worst_cells": [
+   "animal/jackal@15dB:94",
+   "human/child@15dB:116",
+   "animal/dog@20dB:119",
+   "human/stealth@20dB:138",
+   "animal/dog@15dB:149"
+  ],
+  "CDI": 0.0,
+  "bottleneck": "D",
+  "subscores": {
+   "B": 1.0,
+   "C": 0.333,
+   "N_stratum": 1.0,
+   "F": 0.919,
+   "D": 0.0
+  }
+ },
+ {
+  "tag": "v4",
+  "n": 3282746,
+  "B_balance": 0.873,
+  "C_coverage": 1.0,
+  "N_class_stratum_V": 0.023,
+  "N_class_condition_V": 0.217,
+  "F_floor_frac": 0.955,
+  "F_worst_cells": [
+   "vehicle/bicycle@20dB:117",
+   "vehicle/bicycle@25dB:139",
+   "vehicle/motorbike@20dB:168",
+   "vehicle/bicycle@15dB:169",
+   "animal/jackal@15dB:185"
+  ],
+  "CDI": 0.227,
+  "bottleneck": "P",
+  "subscores": {
+   "B": 1.0,
+   "C": 1.0,
+   "N_stratum": 1.0,
+   "N_condition": 0.23,
+   "F": 0.955,
+   "X": 1.0,
+   "P": 0.227,
+   "D": 1.0
+  }
+ }
+]

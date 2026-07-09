@@ -1,0 +1,45 @@
+{
+ "labels_dir": "G:/geophone_synth/labels_v42/windows_3s",
+ "n_windows": 3292768,
+ "pilot": false,
+ "checks": {
+  "occ_consistency_human": {
+   "present_zero_occ": 0,
+   "absent_pos_occ": 0
+  },
+  "occ_consistency_vehicle": {
+   "present_zero_occ": 0,
+   "absent_pos_occ": 0
+  },
+  "occ_consistency_animal": {
+   "present_zero_occ": 0,
+   "absent_pos_occ": 0
+  },
+  "cooccurrence_share": 0.1322
+ },
+ "per_class": {
+  "human": {
+   "present_share": 0.1384,
+   "n_present": 455740,
+   "subfloor_share": 0.4288,
+   "thin_bins": [],
+   "family_concentration": []
+  },
+  "vehicle": {
+   "present_share": 0.1058,
+   "n_present": 348343,
+   "subfloor_share": 0.44,
+   "thin_bins": [],
+   "family_concentration": []
+  },
+  "animal": {
+   "present_share": 0.176,
+   "n_present": 579418,
+   "subfloor_share": 0.4568,
+   "thin_bins": [],
+   "family_concentration": []
+  }
+ },
+ "PASS": true,
+ "failures": []
+}

@@ -1,0 +1,14 @@
+{
+ "thresholds": {
+  "human": 0.35,
+  "vehicle": 0.15
+ },
+ "real_acc": 0.7883552911177221,
+ "recall": {
+  "human": 0.6162528216704289,
+  "vehicle": 0.793233082706767,
+  "nothing": 0.948663101604278
+ },
+ "human_missed": 323,
+ "best_ema_val_auroc": 0.9894235244605886
+}

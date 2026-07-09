@@ -1,0 +1,22 @@
+{
+ "corpus": "G:/geophone_synth/corpus_v42",
+ "checks": {
+  "nothing_rms_p5_mv": 0.123,
+  "nothing_rms_median_mv": 3.83,
+  "nothing_rms_p95_mv": 113.59,
+  "clipfrac_mean_human": 0.03178,
+  "clipfrac_median_human": 0.0,
+  "clipfrac_mean_animal": 0.02476,
+  "clipfrac_median_animal": 0.0,
+  "clipfrac_mean_vehicle": 0.05862,
+  "clipfrac_median_vehicle": 0.0,
+  "human_kurtosis_median": 4.17,
+  "mains_prevalence": 0.413,
+  "mains_db_above_floor": 9.38205252429323,
+  "spur150_prevalence": 0.603,
+  "machinery_prevalence": 0.473,
+  "mixed_blob_ok": "21080/21080"
+ },
+ "PASS": true,
+ "failures": []
+}
