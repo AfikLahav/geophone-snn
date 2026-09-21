@@ -1,4 +1,4 @@
-"""Phase L — parameterized window/label pass over the v4 corpus (render-decoupled labeling).
+"""Phase L — parameterized window/label pass over the v4 dataset (render-decoupled labeling).
 
 For a given window length W and hop, slide over every scene's reconstructed per-class clean +
 noise blobs and emit per-window labels: per-class in-band SNR (exact, via the D2 answer-key
@@ -10,14 +10,13 @@ detectable at gates_<W>s.json). One parquet per shard -> labels_v4/windows_<W>s/
 Quota: K = ceil(2*T_COVER/W) windows/scene (T_COVER=36 s of hop-coverage), even temporal stride
 (preserves the approach/pass/recede SNR spread; deterministic).
 
-Usage: python simgeo_v4/label_windows.py <W_s> <hop_s> [corpus_dir] [labels_root] [nworkers]
+Usage: python simgeo_v4/label_windows.py <W_s> <hop_s> [dataset_dir] [labels_root] [nworkers]
 """
 import os, sys, json, sqlite3, time, glob, warnings, math
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 warnings.filterwarnings("ignore")
 HERE = os.path.dirname(os.path.abspath(__file__))
-DB_ROOT = os.environ.get("GEO_DB_ROOT", r"G:/geophone_synth")   # <- set GEO_DB_ROOT to your data location
 sys.path.insert(0, HERE)
 import label
 
@@ -28,7 +27,7 @@ CLASSES = ("human", "vehicle", "animal")
 
 # v4.2 scene metadata carried through to the labels parquet: weather tier + the class-independent
 # Q_j sensor draws (Change 3 [R5]). Consumed by the datasheet (realized Q_j spans) and the N gate
-# (Cramer's V(class, Q_j) ~ 0 confirms neutrality). Absent columns (v4 corpus) degrade gracefully.
+# (Cramer's V(class, Q_j) ~ 0 confirms neutrality). Absent columns (v4 dataset) degrade gracefully.
 V42_META = ("tier", "gain_log10", "quant_lsb", "rail_mv", "coupling_form")
 # v4.2 Change 4 (B tightening): optional per-subkind window-quota cap. GEO_V42_KCAP -> JSON
 # {subkind: max_windows}; absent -> uniform K (v4 behavior). Caps slow subkinds (stealth) so
@@ -55,14 +54,16 @@ def run_shard(args):
     K = math.ceil(2 * T_COVER / W)
     db = sqlite3.connect(shard_path)
     have = {r[1] for r in db.execute("PRAGMA table_info(scenes)")}
-    v42 = [c for c in V42_META if c in have]                       # present only in the v4.2 corpus
+    v42 = [c for c in V42_META if c in have]                       # present only in the v4.2 dataset
     sel = ("scene_id,split,coarse,subkind,profile_id,family,terrain_vs,noise_condition,"
            "masking,n_subjects,activity_json" + (("," + ",".join(v42)) if v42 else ""))
     meta = {r[0]: r for r in db.execute(f"SELECT {sel} FROM scenes")}   # v42 cols at m[11+]
     cols = {k: [] for k in (
         "scene_id", "t0", "split", "coarse", "subkind", "profile_id", "family", "terrain_vs",
         "noise_condition", "masking", "common_snr", "activity",
-        *[f"{c}_{s}" for c in CLASSES for s in ("level", "snr", "soft", "occ", "zone3")],
+        *[f"{c}_{s}" for c in CLASSES for s in ("level", "snr", "soft", "occ", "zone3",
+                                                  "scene_presence", "emission_active",
+                                                  "received_signal", "detectable")],
         *v42)}
     done = fail = 0; t0 = time.time()
     cur = db.execute("SELECT scene_id,n_samples,noise_mv,clean_mv,clean_cls,clean_mv2,clean_cls2 FROM waveforms")
@@ -110,6 +111,16 @@ def run_shard(args):
                     cols[f"{c}_soft"].append(np.float32(label.soft_target(snr) if occ > 0 else 0.0))
                     cols[f"{c}_occ"].append(np.float32(occ))
                     cols[f"{c}_zone3"].append(np.int8(z3))
+                    # v4.3 four-state labels: presence -> emission -> received -> detectable
+                    scene_pres = int(counts.get(c, 0) > 0)
+                    emission_act = int(occ > 0.0)
+                    received = int(emission_act and c in clean_by and
+                                   label._band_rms(clean_by[c][i0:i0 + nw], *label.BANDS[c]) > 1e-6)
+                    det = int(received and snr > label.DET_FLOOR_DB.get(c, -20.0))
+                    cols[f"{c}_scene_presence"].append(np.int8(scene_pres))
+                    cols[f"{c}_emission_active"].append(np.int8(emission_act))
+                    cols[f"{c}_received_signal"].append(np.int8(received))
+                    cols[f"{c}_detectable"].append(np.int8(det))
                     row_snr[c] = snr
                 # common band SNR (max over present classes)
                 pres = [row_snr[c] for c in CLASSES if c in clean_by]
@@ -144,14 +155,15 @@ def run_shard(args):
 def main():
     W = float(sys.argv[1]) if len(sys.argv) > 1 else 3.0
     hop = float(sys.argv[2]) if len(sys.argv) > 2 else W / 2
-    corpus = sys.argv[3] if len(sys.argv) > 3 else DB_ROOT + r"/corpus_v42"
-    lroot = sys.argv[4] if len(sys.argv) > 4 else DB_ROOT + r"/labels_v42"
+    from config_paths import DATASET_DIR as _CV42, LABELS_DIR as _LV42
+    dataset = sys.argv[3] if len(sys.argv) > 3 else _CV42
+    lroot = sys.argv[4] if len(sys.argv) > 4 else _LV42
     nw = int(sys.argv[5]) if len(sys.argv) > 5 else 15
     tag = f"{W:g}s"
     gpath = os.path.join(HERE, "..", "..", "dataset_validation", f"gates_{tag}.json")
     gates = json.load(open(gpath))["classes"]
     out_dir = os.path.join(lroot, f"windows_{tag}"); os.makedirs(out_dir, exist_ok=True)
-    shards = sorted(glob.glob(os.path.join(corpus, "shard_*.sqlite")),
+    shards = sorted(glob.glob(os.path.join(dataset, "shard_*.sqlite")),
                     key=lambda p: int(p.split("_")[-1].split(".")[0]))
     args = [(s, os.path.join(out_dir, f"labels_shard_{i}.parquet"), W, hop, gates)
             for i, s in enumerate(shards)]

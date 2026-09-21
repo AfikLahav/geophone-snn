@@ -1,6 +1,6 @@
 # wf_analyze.py
 # Main driver: computes every time-domain / amplitude discrepancy number and
-# writes gap_study/v4_plan/discrepancy/discrepancy_waveform.json
+# writes dataset_validation/discrepancy/discrepancy_waveform.json
 #
 # Run: python wf_analyze.py
 import os, json, sqlite3, time

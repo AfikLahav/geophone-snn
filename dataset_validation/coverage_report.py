@@ -1,5 +1,5 @@
 """C3 — v4 render coverage gate. Reads the W=3 s labels parquet (labels_v4/windows_3s) and
-checks that the corpus fills all reasonable loudness levels + the composition/occupancy
+checks that the dataset fills all reasonable loudness levels + the composition/occupancy
 conditions. Exit 1 on fail (full mode); --pilot reports without failing.
 
 Gates (realistic bounds -- pass-by geometry is genuinely faint-dominated, and sub-floor
@@ -11,18 +11,20 @@ windows are EXCLUDED from the A1 gated metric anyway, so the pile is harmless):
   4. co-occurring (>=2 classes present) windows >= 6% of present windows
   5. no terrain family contributes > 3x its window-share AND > 40% to any single class-bin
   6. occupancy consistency: no present(level>0) window with occ==0, and vice-versa
-Writes corpus_v4_coverage.json + snr_coverage_v4.png.
+Writes dataset_v431_coverage.json + snr_coverage_v4.png.
 
-Usage: python gap_study/v4_plan/coverage_report.py [labels_dir] [--pilot]
+Usage: python dataset_validation/coverage_report.py [labels_dir] [--pilot]
 """
 import os, sys, glob, json
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 PILOT = "--pilot" in sys.argv
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
-LABELS = args[0] if args else r"G:/geophone_synth/labels_v4/windows_3s"
+LABELS = args[0] if args else os.path.join(_GEO_ROOT, "labels_v4/windows_3s")
 GATES = json.load(open(os.path.join(HERE, "gates_3s.json")))["classes"]
 CLASSES = ("human", "vehicle", "animal")
 
@@ -104,10 +106,10 @@ print(f"nothing windows: {(~present_any).mean()*100:.1f}%")
 
 rep["PASS"] = len(fails) == 0
 rep["failures"] = fails
-json.dump(rep, open(os.path.join(HERE, "corpus_v4_coverage.json"), "w"), indent=1)
+json.dump(rep, open(os.path.join(HERE, "dataset_v431_coverage.json"), "w"), indent=1)
 print("\n" + ("PASS" if not fails else f"FAIL ({len(fails)}):"))
 for f in fails:
     print("  -", f)
-print("wrote corpus_v4_coverage.json + snr_coverage_v4.png")
+print("wrote dataset_v431_coverage.json + snr_coverage_v4.png")
 if fails and not PILOT:
     sys.exit(1)

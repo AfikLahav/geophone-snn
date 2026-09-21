@@ -20,8 +20,10 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import roc_auc_score
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-FEATS_DIR = sys.argv[1] if len(sys.argv) > 1 else r"G:/geophone_synth/features_v4_3s"
+FEATS_DIR = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_GEO_ROOT, "features_v4_3s")
 TAG = sys.argv[2] if len(sys.argv) > 2 else "v4"
 CLASSES = ("human", "vehicle", "animal")
 con = sqlite3.connect(os.path.join(ROOT, "feature_analysis_v2.sqlite"))
@@ -35,7 +37,7 @@ df = pd.concat([pd.read_parquet(s, columns=cols) for s in sh], ignore_index=True
 # distinguishing them is the intended task, not a shortcut. The P gate compares AMBIENT-ONLY:
 # calm/wind/rain nothing vs subject-scene zero-occupancy windows.
 is_confuser_nothing = (df["coarse"].astype(str) == "nothing") & \
-    (~df["subkind"].astype(str).isin(["calm", "wind", "rain", "ambient"]))   # v4.2: ambient = pure bg
+    (~df["subkind"].astype(str).isin(["calm", "wind", "rain", "ambient"]))   # v4.3.1: ambient = pure bg
 df = df[~is_confuser_nothing]
 
 # TRUE ZERO-SIGNAL selection via OCCUPANCY: windows where NO class has any emission activity

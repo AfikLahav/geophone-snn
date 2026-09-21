@@ -1,6 +1,6 @@
 """Footstep force wavelet — v3 (A1 + A2', pilot-validated).
 
-CHANGES vs v1 (gap_study/v3_harness/A1_A2prime_spec.md):
+CHANGES vs v1 (dataset_validation/v3_harness/A1_A2prime_spec.md):
   A1  radiate the DYNAMIC impact only. The quasi-static weight W(t) is computed (it shapes Fx /
       is available for reference) but is NOT summed into the radiated normal force Fz — a quasi-static
       load does not radiate far-field seismic energy, and including it leaked a spurious sub-10 Hz lobe
@@ -22,7 +22,7 @@ def _lobe(t, center, width, amp):
 
 
 def _rise_a2p(rng, sharp):
-    """A2' (PHYSICS-based; gap_study/v3_verify/human_source_HF_physics.md): heel-strike modeled as a
+    """A2' (PHYSICS-based; dataset_validation/v3_verify/human_source_HF_physics.md): heel-strike modeled as a
     Hertzian contact impact, shock-front contact time tau_c ~ U(2-8 ms), footwear-modulated. Source
     corner f_c ~ 0.34/tau_c (~40-170 Hz); the RECORDED HF then EMERGES via soil Q-attenuation x distance
     x geophone H(s) (high near/stiff, stripped far/soft) -- NOT curve-fit to human.csv (a near-field

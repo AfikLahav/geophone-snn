@@ -9,7 +9,7 @@ BANKS = os.path.join(HERE, "..", "..", "terrain_models")
 
 
 def main(per_family=2):
-    lib = [p for p in json.load(open(os.path.join(BANKS, "library.json")))
+    lib = [p for p in json.load(open(os.path.join(BANKS, "library_v3.json")))
            if not p.get("modal")]
     rng = random.Random(7)
     by_fam = {}

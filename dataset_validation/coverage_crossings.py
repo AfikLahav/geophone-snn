@@ -13,8 +13,10 @@ import os, sys, glob, json
 from itertools import combinations
 import numpy as np, pandas as pd
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
-LABELS = sys.argv[1] if len(sys.argv) > 1 else r"G:/geophone_synth/labels_v4/windows_3s"
+LABELS = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_GEO_ROOT, "labels_v4/windows_3s")
 TAG = sys.argv[2] if len(sys.argv) > 2 else "v4"
 CLASSES = ("human", "vehicle", "animal")
 STRATA = {"soft_soil": "soft", "loess": "soft", "sabkha": "soft", "snow": "soft",

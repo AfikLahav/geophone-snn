@@ -2,20 +2,20 @@
 can hang silently for hours without tripping client timeouts).
 
 Runs fetch_run.py <target> [--shard i n] as a child; progress = new files
-appearing under N:\\geophone_real_noise\\<dir>. If no new file for STALL_MIN
+appearing under $GEO_NOISE_RAW/<dir>. If no new file for STALL_MIN
 minutes, kill + restart (the fetcher skips already-downloaded units). Exits 0
 when the child completes normally; exits 1 after MAX_RESTARTS.
 Usage: python fetch_watchdog.py <yw|lasso|zg|is_il> [--shard i n]
 """
 import os, sys, time, glob, subprocess
 
-ROOT = r"N:\geophone_real_noise"
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.environ.get("GEO_NOISE_RAW", os.path.abspath(os.path.join(HERE, "..", "..", "..", "geophone_real_noise")))
 DIRS = {"yw": "yw", "lasso": "lasso", "zg": "zg", "is_il": "is_il"}
 STALL_MIN = int(os.environ.get("STALL_MIN", "25"))   # per-target override:
 # LASSO full-day PH5 extractions can queue server-side >25 min; killing them
 # mid-queue made an infinite restart loop (12 attempts, 2026-06-11 night)
 MAX_RESTARTS = 12
-HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def n_files(target):

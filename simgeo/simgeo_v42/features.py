@@ -1,4 +1,4 @@
-"""Feature bank v1 — 102 per-window features for the full-corpus screening pass.
+"""Feature bank v1 — 102 per-window features for the full-dataset screening pass.
 
 Groups (order = FEATURE_NAMES order):
   LEGACY32   the notebook's 32 verbatim (site-tuned bands kept deliberately so their
@@ -19,7 +19,7 @@ Groups (order = FEATURE_NAMES order):
   AR8        AR(8) coefficients (Yule-Walker/Levinson on the window autocorrelation)
   NL1        Higuchi fractal dimension (kmax=8)
 
-Window = 3.0 s / 3000 samples @ 1 kHz (matches the corpus label windows).
+Window = 3.0 s / 3000 samples @ 1 kHz (matches the dataset label windows).
 """
 import numpy as np
 from scipy import signal as sig

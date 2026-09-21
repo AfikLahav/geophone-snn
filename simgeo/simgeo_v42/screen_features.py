@@ -1,4 +1,4 @@
-"""Feature screening on the full-corpus feature table — produces the data behind
+"""Feature screening on the full-dataset feature table — produces the data behind
 FEATURE_ANALYSIS.md.
 
 Methodology:
@@ -17,7 +17,7 @@ Methodology:
     balanced accuracy, permutation importance. Same for single-vs-multi per class.
   - Sides capped at CAP windows (AUC error ~ +-0.002); caps logged, nothing silent.
 
-Outputs to N:\\geophone_synth\\features\\screening\\:
+Outputs to $GEO_SYNTH_ROOT/features/screening/:
   auc_global.csv, auc_family.csv, auc_faint.csv, gbt_results.json, meta.json
 Usage: python screen_features.py [features_dir]
 """
@@ -28,6 +28,8 @@ import pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from features import FEATURE_NAMES
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 
 CAP = 600_000          # max windows per boundary side for rank-AUC
 SEED = 0
@@ -48,7 +50,7 @@ def cap_idx(idx, rng):
 
 
 def main():
-    fdir = sys.argv[1] if len(sys.argv) > 1 else r"G:/geophone_synth/features_v2"
+    fdir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_GEO_ROOT, "features_v2")
     odir = os.path.join(fdir, "screening")
     os.makedirs(odir, exist_ok=True)
     rng = np.random.default_rng(SEED)
@@ -125,6 +127,7 @@ def main():
     # ----------------------------------------------------------- multivariate
     from sklearn.ensemble import HistGradientBoostingClassifier
     from sklearn.metrics import balanced_accuracy_score, confusion_matrix, roc_auc_score
+
     prof = tr["profile_id"].astype(str).to_numpy()
     profs = np.unique(prof)
     hold_p = set(rng.choice(profs, max(2, len(profs) // 10), replace=False))

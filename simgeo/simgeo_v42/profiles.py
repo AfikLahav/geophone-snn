@@ -8,8 +8,8 @@ Q_c 1-20; inverse branch for asphalt/concrete/paving/sabkha; frozen = scaled bas
 splits 15% val + 15% test PER FAMILY, assigned here.
 Units for pyprop8: km, km/s, g/cm^3.
 
-v3 TERRAIN-CATALOG fixes (gap_study/V3_SYNTHETIC_DATASET_PLAN.md TIER D1/D2,
-gap_study/v3_verify/V4_terrain_soil.md):
+v3 TERRAIN-CATALOG fixes (dataset_validation/V3_SYNTHETIC_DATASET_PLAN.md TIER D1/D2,
+dataset_validation/v3_verify/V4_terrain_soil.md):
   D1a cut frozen+snow to ~0.5% of catalog (no Israeli permafrost; snow Hermon-only).
   D1b add terra_rossa (LITERATURE-ANALOG Vs, FLAGGED), cover_basalt (670-2400),
       chalk_marl (marl 350-560 / chalk 620-1220) families with Israeli-measured Vs.

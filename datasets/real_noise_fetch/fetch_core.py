@@ -1,6 +1,6 @@
 """Shared core for the Stage-R2 real-noise fetch (see datasets/FETCH_PLAN.md).
 
-Data lands under N:\\geophone_real_noise\\<target>\\ as one float32 npz per station-day
+Data lands under $GEO_NOISE_RAW/<target>/ as one float32 npz per station-day
 (ground VELOCITY, m/s, native rate) + a global manifest.csv row per unit.
 Restartable: existing npz files are skipped.
 """
@@ -8,7 +8,8 @@ import os, io, time, json, traceback
 import numpy as np
 import pandas as pd
 
-ROOT = r"N:\geophone_real_noise"
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.environ.get("GEO_NOISE_RAW", os.path.abspath(os.path.join(HERE, "..", "..", "..", "geophone_real_noise")))
 MANIFEST = os.path.join(ROOT, "manifest.csv")
 
 MANIFEST_COLS = ["target", "net", "sta", "cha", "fs", "date", "label",

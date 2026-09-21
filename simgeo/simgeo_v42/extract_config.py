@@ -6,18 +6,20 @@ a mismatch means the config can't be trusted, so it's flagged not written), and 
 the recovered config to a per-shard config DB (scene_id + scalar columns + full
 config_json). Tiny output (~MB/shard); the 38 GB waveforms are untouched here.
 
-sid < 200000 -> generate_corpus.gen_scene ; sid >= 200000 -> append_multiveh.gen_scene_mv.
-Usage: python extract_config.py [nworkers=7] [corpus_dir] [out_dir]
+sid < 200000 -> generate_dataset.gen_scene ; sid >= 200000 -> append_multiveh.gen_scene_mv.
+Usage: python extract_config.py [nworkers=7] [dataset_dir] [out_dir]
 """
 import os, sys, glob, json, sqlite3, time, warnings
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 warnings.filterwarnings("ignore")
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-CORPUS = r"G:\geophone_synth\corpus_150k"
-OUT = r"G:\geophone_synth\config"
+DATASET = os.path.join(_GEO_ROOT, "dataset_v2")
+OUT = os.path.join(_GEO_ROOT, "config")
 COLS = ["closest_approach_m", "speed_ms", "path_style", "onset_free", "f0_hz",
         "damping_h", "sens_g", "coupling_fc", "coupling_q", "gain", "noise_condition",
         "n_subjects", "primary_mass_kg", "wind", "rain"]
@@ -40,7 +42,8 @@ def init_cfg_db(path):
 
 def run_shard(args):
     shard_path, out_path = args
-    import generate_corpus as gc, append_multiveh as mv
+    import generate_dataset as gc, append_multiveh as mv
+
     name = os.path.basename(shard_path)
     src = sqlite3.connect(shard_path)
     rows = src.execute("SELECT scene_id,profile_id,split,coarse,subkind,amplitude "
@@ -81,10 +84,10 @@ def run_shard(args):
 
 def main():
     nw = int(sys.argv[1]) if len(sys.argv) > 1 else 7
-    corpus = sys.argv[2] if len(sys.argv) > 2 else CORPUS
+    dataset = sys.argv[2] if len(sys.argv) > 2 else DATASET
     out_dir = sys.argv[3] if len(sys.argv) > 3 else OUT
     os.makedirs(out_dir, exist_ok=True)
-    shards = sorted(glob.glob(os.path.join(corpus, "shard_*.sqlite")),
+    shards = sorted(glob.glob(os.path.join(dataset, "shard_*.sqlite")),
                     key=lambda p: int(p.split("_")[-1].split(".")[0]))
     args = [(s, os.path.join(out_dir, os.path.basename(s).replace("shard_", "config_shard_")))
             for s in shards]

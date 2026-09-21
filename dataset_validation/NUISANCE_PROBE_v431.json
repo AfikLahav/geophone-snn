@@ -1,0 +1,13 @@
+{
+ "features_dir": "$GEO_SYNTH_ROOT/features_v431_3s",
+ "n_zero_signal": 120000,
+ "class_auc_zero_signal": {
+  "animal": 0.5747,
+  "human": 0.5679,
+  "mixed": 0.5734,
+  "nothing": 0.6538,
+  "vehicle": 0.6449
+ },
+ "max_class_auc_zero_signal": 0.6538,
+ "target": "<= 0.55 (chance = 0.5): above => label leaks through non-signal pathways"
+}

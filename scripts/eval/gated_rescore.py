@@ -6,7 +6,7 @@ both UNGATED (the original 0.9909 definition) and GATED (positives = present & s
 tau_hi from gates.json; present-but-sub-tau_hi dropped, NOT negatives). Expected: gating
 barely moves v2 (its present windows are ~100% above floor). Writes snn_v2_out/GATED_RESCORE.json.
 
-Run:  python gap_study/v4_plan/gated_rescore.py     (env GEO_V2_OUT / GEO_V2_FEAT to override)
+Run:  python dataset_validation/gated_rescore.py     (env GEO_V2_OUT / GEO_V2_FEAT to override)
 """
 import os, sys, json, glob
 import numpy as np, pandas as pd
@@ -17,10 +17,12 @@ import torch, torch.nn as nn
 from spikingjelly.activation_based import neuron, surrogate, layer, functional
 from sklearn.metrics import roc_auc_score
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 OUT = os.environ.get("GEO_V2_OUT") or os.path.join(ROOT, "snn_v2_out")
-FEAT_DIR = os.environ.get("GEO_V2_FEAT", r"G:/geophone_synth/features_v2")
+FEAT_DIR = os.environ.get("GEO_V2_FEAT", os.path.join(_GEO_ROOT, "features_v2"))
 GATES = json.load(open(os.path.join(HERE, "gates.json")))["classes"]
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 T = 4

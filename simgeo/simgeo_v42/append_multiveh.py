@@ -1,14 +1,14 @@
-"""Append multi-vehicle scenes to corpus_150k (gap found 2026-06-13: vehicle head had
+"""Append multi-vehicle scenes to dataset_150k (gap found 2026-06-13: vehicle head had
 zero 'multiple' examples). Two subtypes on vehicle-capable terrain (vs>=250):
   convoy      — 2-3 vehicles, SAME kind, same path, 2-8 s headway (column of cars/bikes)
   two_vehicle — 2 independent vehicles (40% same kind: two cars, two motorbikes...),
                 independent paths/speeds, second offset 0-50% into the scene
-Same chain as generate_corpus.gen_scene: bank GF -> R3 noise -> render_hp -> three-zone
+Same chain as generate_dataset.gen_scene: bank GF -> R3 noise -> render_hp -> three-zone
 per-class ordinal labels. counts['vehicle']=ns so detectable windows label 'multiple'.
 Writes NEW shards (shard_8+) next to the existing 0-7 — the 148k is untouched.
 Scene IDs start at 200000 (no collision; seeds derive from sid).
 Splits from terrain_models/splits_90_10.json (the 90/10 re-split).
-Usage: python append_multiveh.py [per_cell=8] [nworkers=6] [out_dir=N:\\geophone_synth\\corpus_150k]
+Usage: python append_multiveh.py [per_cell=8] [nworkers=6] [out_dir]
 """
 import os, sys, json, time, warnings
 import numpy as np
@@ -17,7 +17,7 @@ from concurrent.futures import ProcessPoolExecutor
 warnings.filterwarnings("ignore")
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from generate_corpus import SCENE_COLS, WIN_COLS, init_db, BASE_SEED, FS, VEH_MIN_VS
+from generate_dataset import SCENE_COLS, WIN_COLS, init_db, BASE_SEED, FS, VEH_MIN_VS
 
 SID0 = 200000
 SUBS = ["convoy", "two_vehicle"]
@@ -79,7 +79,7 @@ def gen_scene_mv(spec):
 
     counts = {"human": 0, "vehicle": ns, "animal": 0}
     n = int(dur * FS)
-    v = np.zeros(n + n_bank)                # assemble (same as generate_corpus)
+    v = np.zeros(n + n_bank)                # assemble (same as generate_dataset)
     for (t0, x, y, fz, fx) in ems:
         r = float(np.hypot(x, y))
         if r > 320: continue
@@ -152,7 +152,8 @@ def run_shard(args):
 def main():
     per_cell = int(sys.argv[1]) if len(sys.argv) > 1 else 8
     nw = int(sys.argv[2]) if len(sys.argv) > 2 else 6
-    out_dir = sys.argv[3] if len(sys.argv) > 3 else r"N:\geophone_synth\corpus_150k"
+    from config_paths import SYNTH_ROOT
+    out_dir = sys.argv[3] if len(sys.argv) > 3 else os.path.join(SYNTH_ROOT, "dataset_v2")
     plan, nprof = build_plan(per_cell)
     print(f"multi-vehicle append: {len(plan)} scenes ({nprof} profiles x {len(SUBS)} subs "
           f"x {per_cell}/cell), {nw} workers -> shards 8..{7+nw}", flush=True)

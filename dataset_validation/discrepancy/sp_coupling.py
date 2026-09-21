@@ -104,7 +104,7 @@ out['synth_per_scene_bump'] = {
 con.close()
 
 # cross-check coupling_verify.json
-cvpath = os.path.join(L.BASE, 'gap_study', 'v4_plan', 'coupling_verify.json')
+cvpath = os.path.join(L.BASE, 'dataset_validation', 'v4_plan', 'coupling_verify.json')
 if os.path.exists(cvpath):
     cv = json.load(open(cvpath))
     out['coupling_verify_prior'] = {k: {'peak_hz': v.get('peak_hz'), 'residual_db': v.get('residual_db'),

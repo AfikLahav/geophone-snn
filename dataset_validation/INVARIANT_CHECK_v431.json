@@ -1,0 +1,40 @@
+[
+ {
+  "tag": "v431",
+  "n": 3292768,
+  "B_balance": 0.886,
+  "C_coverage": 1.0,
+  "N_class_stratum_V": 0.024,
+  "N_class_condition_V": 0.009,
+  "N_tier_V": 0.009,
+  "N_gain_log10_V": 0.006,
+  "N_quant_lsb_V": 0.005,
+  "N_rail_mv_V": 0.005,
+  "N_coupling_form_V": 0.005,
+  "F_floor_frac": 0.964,
+  "F_worst_cells": [
+   "animal/jackal@25dB:138",
+   "animal/jackal@20dB:143",
+   "vehicle/bicycle@20dB:182",
+   "vehicle/motorbike@20dB:198",
+   "animal/jackal@15dB:255"
+  ],
+  "CDI": 0.585,
+  "bottleneck": "P",
+  "subscores": {
+   "B": 1.0,
+   "C": 1.0,
+   "N_stratum": 1.0,
+   "N_condition": 1.0,
+   "N_tier": 1.0,
+   "N_gain_log10": 1.0,
+   "N_quant_lsb": 1.0,
+   "N_rail_mv": 1.0,
+   "N_coupling_form": 1.0,
+   "F": 0.964,
+   "X": 1.0,
+   "P": 0.585,
+   "D": 1.0
+  }
+ }
+]

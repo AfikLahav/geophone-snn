@@ -2,18 +2,18 @@
 
 For every profile (340 v3 banks) x class (human/vehicle/animal) x closest-approach
 distance, render single-source pass-by scenes under the CALM ambient and the v4
-re-anchored coupling (coupling.anchor_fc — maps MUST match the corpus sensor model),
+re-anchored coupling (coupling.anchor_fc — maps MUST match the dataset sensor model),
 and record the median active-window in-band SNR. The B1 sampler inverts these curves:
 target SNR -> closest-approach distance.
 
 Method mirrors simgeo_v3_calib/_snr_distance_map_calib.py:_render_one, widened to all
-banks, with (a) anchor_fc coupling and (b) the corpus r>320 m assembly cutoff
-(generate_corpus.py:173), not scenes.assemble's 350.
+banks, with (a) anchor_fc coupling and (b) the dataset r>320 m assembly cutoff
+(generate_dataset.py:173), not scenes.assemble's 350.
 
-Output: G:/geophone_synth/config/snr_maps_v42.npz + subkind_ceilings_v42.json. Resume-aware
-(per-profile npy chunks under snr_maps_v42_chunks).
+Output: $GEO_SYNTH_ROOT/config/snr_maps_v431.npz + subkind_ceilings_v431.json. Resume-aware
+(per-profile npy chunks under snr_maps_v431_chunks).
 
-v4.2 [R4]: MUST be launched under the SAME sensor env as the corpus render so the maps match —
+v4.2 [R4]: MUST be launched under the SAME sensor env as the dataset render so the maps match —
 specifically GEO_COUPLING_MODE=mix (each rep draws lowpass/bump; the per-rep median is the
 expected in-band SNR under the mixture) and GEO_LINES_MODE=v41. The gain/quant/rail spans do NOT
 affect the maps (SNR is gain-invariant, and quant/rail touch only out_mv which the map ignores).
@@ -26,13 +26,12 @@ from concurrent.futures import ProcessPoolExecutor
 warnings.filterwarnings("ignore")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DB_ROOT = os.environ.get("GEO_DB_ROOT", r"G:/geophone_synth")   # <- set GEO_DB_ROOT to your data location
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, HERE)
-CFG_DIR = DB_ROOT + r"/config"
-CHUNKS = os.path.join(CFG_DIR, "snr_maps_v42_chunks")          # v4.2 [R4]: rebuilt under mix coupling
-OUT_NPZ = os.path.join(CFG_DIR, "snr_maps_v42.npz")
-CEIL_OUT = os.path.join(CFG_DIR, "subkind_ceilings_v42.json")  # v4.2 Change 2: F-gate reachability
+from config_paths import CFG_DIR
+CHUNKS = os.path.join(CFG_DIR, "snr_maps_v431_chunks")          # v4.2 [R4]: rebuilt under mix coupling
+OUT_NPZ = os.path.join(CFG_DIR, "snr_maps_v431.npz")
+CEIL_OUT = os.path.join(CFG_DIR, "subkind_ceilings_v431.json")  # v4.2 Change 2: F-gate reachability
 
 FS = 1000.0
 CLASSES = ["human", "vehicle", "animal"]                       # fixed order in the output
@@ -45,11 +44,11 @@ D_GRID = {
 }
 ND_MAX = max(len(v) for v in D_GRID.values())
 # v4.2 [R4]: RUN this with GEO_COUPLING_MODE=mix so each rep draws lowpass/bump 50/50 -> the
-# per-rep median IS the expected in-band SNR under the corpus form mixture (the residual per-scene
+# per-rep median IS the expected in-band SNR under the dataset form mixture (the residual per-scene
 # form scatter is the ~5 dB the coverage gate already absorbs). N_REP env-overridable (>=3).
 N_REP = int(os.environ.get("GEO_SNRMAP_NREP", "3"))
 BASE_SEED = 20260706
-R_CUTOFF = 320.0                                              # corpus assembly cutoff
+R_CUTOFF = 320.0                                              # dataset assembly cutoff
 
 
 def _stationary_path(d, dur=12.0):
@@ -89,7 +88,7 @@ def _one_render(cls, bank, d, rng, src, sensor, r3_noise, label, anchor_fc):
     v_sig = _assemble320(em, bank, dur)
     n = len(v_sig)
     v_noise = r3_noise.ground_noise(n, 0.0, 0.0, rng)          # calm
-    fc = anchor_fc(bank.meta["coupling_fc"], rng)              # v4 re-anchored coupling
+    fc = bank.meta["coupling_fc"]                               # v4.3: coupling removed (passthrough)
     _, clean_mv, noise_mv, _ = sensor.render_hp(v_sig, v_noise, rng, fc,
                                                 bank.meta["coupling_q"], p_lines=0.0)
     clean_mv = clean_mv.astype(np.float64); noise_mv = noise_mv.astype(np.float64)
@@ -111,7 +110,7 @@ def run_profile(pid):
         return pid, "skip"
     import sources_v2 as src, sensor, r3_noise, label
     from scenes import Bank
-    from coupling import anchor_fc
+    # v4.3: coupling removed — anchor_fc no longer needed
     bank = Bank.get(pid)
     med = np.full((len(CLASSES), ND_MAX), np.nan)
     p10 = np.full((len(CLASSES), ND_MAX), np.nan)
@@ -122,7 +121,7 @@ def run_profile(pid):
             for r in range(N_REP):
                 seed = (BASE_SEED * 1000003 + hash((pid, cls, di, r)) % 100000) % (2**32)
                 rng = np.random.default_rng(seed)
-                vals.append(_one_render(cls, bank, float(d), rng, src, sensor, r3_noise, label, anchor_fc))
+                vals.append(_one_render(cls, bank, float(d), rng, src, sensor, r3_noise, label, None))
             vals = np.array(vals, float)
             if np.isfinite(vals).any():
                 med[ci, di] = np.nanmedian(vals)
@@ -169,7 +168,7 @@ def main():
     # REFERENCE SNR at MIN_STANDOFF under CALM (the loudest case: closest distance, no ambient
     # shift) PLUS the subkind source-level offset. The F gate exempts bins above this ceiling as
     # physically unreachable (a bicycle -22 dB below car simply cannot fill the loud bins).
-    import generate_corpus_v4 as gcv                            # SUBKIND_SNR_OFFSET_DB + subkind lists
+    import generate_dataset_v4 as gcv                            # SUBKIND_SNR_OFFSET_DB + subkind lists
     subk_class = {}
     for sk, _ in gcv.HUMAN_V4:   subk_class[sk] = "human"
     for sk, _ in gcv.VEHICLE_V4: subk_class[sk] = "vehicle"

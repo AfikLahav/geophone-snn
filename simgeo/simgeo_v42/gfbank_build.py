@@ -105,16 +105,16 @@ def _build_one_inner(profile, pid, t0):
 def main():
     """Usage: python gfbank_build.py [nworkers] [profile_id profile_id ...]
     With profile_ids given, builds only those (test mode).
-    RESTART-SAFE: library.json is written ONCE and loaded thereafter — never
+    RESTART-SAFE: library_v3.json is written ONCE and loaded thereafter — never
     regenerated (a code/seed drift between runs would silently re-roll profiles
-    while cached banks keep the old draws). Delete library.json deliberately to
+    while cached banks keep the old draws). Delete library_v3.json deliberately to
     re-roll. Sampler+builder code snapshotted alongside for provenance."""
     sys.path.insert(0, HERE)
     os.makedirs(BANKS, exist_ok=True)
-    libpath = os.path.join(BANKS, "library.json")
+    libpath = os.path.join(BANKS, "library_v3.json")
     if os.path.exists(libpath):
         lib = json.load(open(libpath))
-        print(f"loaded existing library.json ({len(lib)} profiles) — NOT regenerated")
+        print(f"loaded existing library_v3.json ({len(lib)} profiles) — NOT regenerated")
     else:
         from profiles import build_library
         lib = build_library()
@@ -124,7 +124,7 @@ def main():
         for src in ("profiles.py", "gfbank_build.py"):
             shutil.copy(os.path.join(HERE, src),
                         os.path.join(BANKS, f"provenance_{src}"))
-        print(f"library.json written ({len(lib)} profiles) + code snapshot")
+        print(f"library_v3.json written ({len(lib)} profiles) + code snapshot")
     lib = [p for p in lib if not p.get("modal")]          # floors need no bank
     if "--skip-inverse" in sys.argv:
         lib = [p for p in lib if not p.get("inverse")]    # held for the waveguide fix

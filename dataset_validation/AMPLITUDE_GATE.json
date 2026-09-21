@@ -1,5 +1,5 @@
 {
- "corpus": "G:/geophone_synth/corpus_v42",
+ "dataset": "$GEO_SYNTH_ROOT/dataset_v431",
  "checks": {
   "nothing_rms_p5_mv": 0.123,
   "nothing_rms_median_mv": 3.83,

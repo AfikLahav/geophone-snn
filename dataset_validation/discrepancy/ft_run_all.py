@@ -6,8 +6,8 @@ Runs all four analyses in sequence (data loaded once), writes:
   discrepancy_features.md    - human-readable dense summary for the report compiler
 
 Usage:
-  cd "S:\\ALL PROJECTS\\geophone sensor\\finals project\\finals project"
-  python gap_study/v4_plan/discrepancy/ft_run_all.py
+  cd os.environ.get("PROJECT_ROOT", ".")
+  python dataset_validation/discrepancy/ft_run_all.py
 """
 import sys, os, json, time, io
 import numpy as np
@@ -19,10 +19,10 @@ try:
 except AttributeError:
     pass
 
-ROOT = r"S:\ALL PROJECTS\geophone sensor\finals project\finals project"
+ROOT = os.environ.get("PROJECT_ROOT", ".")
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "simgeo_v4"))
-DISC_DIR = os.path.join(ROOT, "gap_study", "v4_plan", "discrepancy")
+DISC_DIR = os.path.join(ROOT, "dataset_validation", "discrepancy")
 sys.path.insert(0, DISC_DIR)
 
 import ft_00_load as L

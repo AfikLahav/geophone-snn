@@ -3,7 +3,7 @@
 All PSDs computed at fs=1000 Hz. Analysis band 1-450 Hz.
 Two real rigs: human-session (human.csv / human_nothing.csv) and
 car-session (car.csv / car_nothing.csv). Root geophone_2026*.csv = field floor.
-Synth v4: G:/geophone_synth/corpus_v4/shard_0.sqlite, blobs float32 in mV.
+Synth v4: $GEO_SYNTH_ROOT/dataset_v431/shard_0.sqlite, blobs float32 in mV.
 Model input = clip(noise_mv + clean_mv (+ clean_mv2), -256, 256).
 
 This module builds per-group window PSD matrices and caches them to sp_cache.npz
@@ -14,11 +14,13 @@ import numpy as np
 import pandas as pd
 from scipy.signal import welch
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 FS = 1000.0
-BASE = r"S:\ALL PROJECTS\geophone sensor\finals project\finals project"
+BASE = os.environ.get("PROJECT_ROOT", ".")
 REALDIR = os.path.join(BASE, "Goephone-Project", "geophone_data")
-DB = r"G:\geophone_synth\corpus_v4\shard_0.sqlite"
-OUTDIR = os.path.join(BASE, "gap_study", "v4_plan", "discrepancy")
+DB = os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite")
+OUTDIR = os.path.join(BASE, "dataset_validation", "discrepancy")
 CACHE = os.path.join(OUTDIR, "sp_cache.npz")
 
 # analysis config
@@ -182,6 +184,7 @@ def build_groups():
 
     # ---- real field floor (2026-06 root, quiet-ish) ----
     import glob
+
     field = sorted(glob.glob(os.path.join(BASE, 'geophone_20260615_*.csv')))
     fld_ws = []; fld_hr = []
     for p in field:

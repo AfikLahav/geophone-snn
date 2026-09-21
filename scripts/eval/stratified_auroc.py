@@ -14,6 +14,8 @@ import torch, torch.nn as nn
 from spikingjelly.activation_based import neuron, surrogate, layer, functional
 from sklearn.metrics import roc_auc_score
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 DEV = "cuda" if torch.cuda.is_available() else "cpu"; T = 4
 BINS = [(-15, -10), (-10, -5), (-5, 0), (0, 5), (5, 10), (10, 20), (20, 40)]
@@ -78,9 +80,9 @@ def run(out_dir, feat_dir, tag):
 
 
 report = {"note": "AUROC per positive-SNR bin vs all negatives; None where n_pos<100",
-          "v2": run(os.path.join(ROOT, "snn_v2_out"), r"G:/geophone_synth/features_v2", "v2  "),
+          "v2": run(os.path.join(ROOT, "snn_v2_out"), os.path.join(_GEO_ROOT, "features_v2"), "v2  "),
           "v31": run(os.environ.get("GEO_OUT", os.path.join(ROOT, "snn_v3_1_out")),
-                     os.environ.get("GEO_FEAT_DIR", r"G:/geophone_synth/features_v3"), "v3.1")}
+                     os.environ.get("GEO_FEAT_DIR", os.path.join(_GEO_ROOT, "features_v3")), "v3.1")}
 outp = os.path.join(os.environ.get("GEO_OUT", os.path.join(ROOT, "snn_v3_1_out")), "STRATIFIED_AUROC.json")
 json.dump(report, open(outp, "w"), indent=1)
 print("wrote", outp)

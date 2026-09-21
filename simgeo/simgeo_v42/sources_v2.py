@@ -13,11 +13,12 @@ def _pad(F, n):
     out = np.zeros(n); out[:min(len(F), n)] = F[:n]; return out
 
 
-def human(path_xy, t_grid, rng, bank_n, gait="walk", payload_kg=0.0, cadence_mul=1.0):
-    """gait: walk / run / stealth / child. Stealth = reduced GRF + slow cadence (v1.2 0.5-0.7x).
-    v4: payload_kg adds carried load -> GRF scales with (body+load)*g, the literature-linear
-    load-carriage effect (Birrell 2007, Liew 2016: ~10 N per kg). cadence_mul nudges step rate
-    (loaded walkers shorten stride, raise cadence slightly)."""
+def human(path_xy, t_grid, rng, bank_n, gait="walk", payload_kg=0.0, cadence_mul=1.0,
+          v_profile=None):
+    """v4.3: speed-derived cadence from v_profile (paths.py). When v_profile is provided,
+    cadence tracks local speed, pauses produce zero emission, and start/stop ramps modulate
+    force. When v_profile=None, falls back to the v4.2 constant-cadence behavior.
+    gait: walk / run / stealth / child. payload_kg adds carried load."""
     if gait == "child":
         mass = rng.uniform(18, 42); gait_w = "walk"; scale = 1.0; cad = rng.uniform(1.8, 2.2)
     elif gait == "stealth":
@@ -27,17 +28,54 @@ def human(path_xy, t_grid, rng, bank_n, gait="walk", payload_kg=0.0, cadence_mul
         mass = rng.uniform(55, 95); gait_w = "run"; scale = 1.0; cad = rng.uniform(2.6, 3.3)
     else:
         mass = rng.uniform(50, 100); gait_w = "walk"; scale = 1.0; cad = rng.uniform(1.3, 2.2)
-    mass_eff = mass + max(payload_kg, 0.0)                     # v4 load carriage (GRF ~ total mass)
-    cad = cad * cadence_mul
+    mass_eff = mass + max(payload_kg, 0.0)
+    cad_base = cad * cadence_mul
     ff = wavelet.walk_footfall if gait_w == "walk" else wavelet.run_footfall
+
+    # nominal step length for speed->cadence coupling
+    speed_base = None
+    if v_profile is not None and len(v_profile) > 0:
+        speed_base = float(np.median(v_profile[v_profile > 0.15])) if np.any(v_profile > 0.15) else 1.0
+        L0 = max(speed_base / cad_base, 0.3)
+
     em = []; t = t_grid[0] + rng.uniform(0, 0.5)
+    step_in_bout = 0  # for start ramp
+    was_paused = True  # start of scene counts as a "resume"
+
     while t < t_grid[-1]:
+        i_t = min(int(np.searchsorted(t_grid, t)), len(t_grid) - 1)
+
+        if v_profile is not None:
+            v_local = float(v_profile[min(i_t, len(v_profile) - 1)])
+            if v_local < 0.15:
+                # standing still — skip emission, advance time
+                t += 0.1
+                was_paused = True
+                step_in_bout = 0
+                continue
+            if was_paused:
+                step_in_bout = 0
+                was_paused = False
+            cad_local = float(np.clip(v_local / L0, 0.5, 5.0))
+        else:
+            cad_local = cad_base
+
+        # start ramp: first 3 steps after pause/start at reduced force
+        start_scale = 1.0
+        if v_profile is not None and step_in_bout < 3:
+            start_scale = [0.6, 0.8, 0.95][step_in_bout]
+
         Fz, Fx = ff(rng, mass_eff)
-        em.append((t, *path_xy[min(np.searchsorted(t_grid, t), len(path_xy) - 1)],
-                   _pad(Fz * scale, bank_n), _pad(Fx * scale, bank_n)))
-        t += 1.0 / cad * rng.normal(1, 0.03)
-    return em, dict(kind="human", subkind=gait, mass=round(mass, 1), cadence=round(cad, 2),
-                    payload_kg=round(float(payload_kg), 1))
+        em.append((t, *path_xy[min(i_t, len(path_xy) - 1)],
+                   _pad(Fz * scale * start_scale, bank_n),
+                   _pad(Fx * scale * start_scale, bank_n)))
+        step_in_bout += 1
+        t += 1.0 / cad_local * rng.normal(1, 0.03)
+
+    return em, dict(kind="human", subkind=gait, mass=round(mass, 1),
+                    cadence=round(float(cad_base), 2),
+                    payload_kg=round(float(payload_kg), 1),
+                    has_speed_profile=v_profile is not None)
 
 
 def human_group_coherent(path_xy, t_grid, rng, bank_n, n_members, phase_coherence,
@@ -151,62 +189,112 @@ def vehicle(path_xy, t_grid, rng, bank_n, kind="car"):
 _FOOT = {"dog": "paw", "jackal": "paw",
          "horse": "hoof", "boar": "hoof", "sheep": "hoof"}
 
+# v4.3: species-specific bout/pause parameters (08_ANIMAL_BEHAVIOR_RESEARCH.md)
+_STOP_DWELL = {"dog": (1, 5), "jackal": (1, 5), "horse": (2, 10),
+               "sheep": (3, 15), "boar": (2, 8)}
+_MOVE_DWELL = {"dog": (5, 25), "jackal": (5, 25), "horse": (8, 35),
+               "sheep": (5, 20), "boar": (6, 30)}
+_GAIT_MIX = {"dog": {"walk": .60, "trot": .35, "gallop": .05},
+             "jackal": {"walk": .60, "trot": .35, "gallop": .05},
+             "horse": {"walk": .70, "trot": .25, "gallop": .05},
+             "sheep": {"walk": .85, "trot": .13, "gallop": .02},
+             "boar": {"walk": .75, "trot": .20, "gallop": .05}}
+_GAIT_STRIDE_MUL = {"walk": 1.0, "trot": 1.35, "gallop": 1.70}
+_GAIT_OFFSETS = {"walk": [0, 0.25, 0.5, 0.75],
+                 "trot": [0, 0.0, 0.5, 0.5],
+                 "gallop": [0, 0.1, 0.55, 0.6]}
 
-def animal(path_xy, t_grid, rng, bank_n, kind="dog", force_gait=None, stride_mul=1.0, rider_kg=0.0):
-    """Quadruped, allometric (M^-0.148), 4-footfall gait, fore/hind asymmetry.
-    Confound class: breadth over mass envelope matters, not per-species precision.
-    Hoof (horse/boar/sheep) vs paw (dog/jackal) impact wavelets differ in HF content.
-    v4: force_gait pins the gait (slow_quad uses walk for the 4-beat human-cadence aliasing);
-    stride_mul slows the stride but is CLAMPED to the Heglund-Taylor allometric floor so the
-    aliasing scene stays biomechanically defensible; rider_kg scales hoof GRF by (body+rider)/body
-    (load-scaling by analogy to human load carriage -- flagged assumption)."""
+
+def _activity_schedule(rng, dur, kind, force_gait=None):
+    """Semi-Markov MOVE/STOP schedule with species-specific dwell times and gait mix."""
+    pause_lo, pause_hi = _STOP_DWELL.get(kind, (2, 8))
+    move_lo, move_hi = _MOVE_DWELL.get(kind, (5, 25))
+    gw = _GAIT_MIX.get(kind, {"walk": .7, "trot": .25, "gallop": .05})
+    gaits = list(gw.keys()); probs = [gw[g] for g in gaits]
+    segs = []; t = 0.0
+    state = "MOVE" if rng.random() < 0.85 else "STOP"
+    if state == "STOP":
+        t1 = min(rng.uniform(pause_lo, pause_hi), dur)
+        segs.append((0.0, t1, "STOP", None)); t = t1; state = "MOVE"
+    while t < dur:
+        if state == "MOVE":
+            g = force_gait or gaits[int(rng.choice(len(gaits), p=probs))]
+            dwell = {"walk": (move_lo, move_hi),
+                     "trot": (move_lo * 0.5, move_hi * 0.5),
+                     "gallop": (1, 6)}[g]
+            t1 = min(t + rng.uniform(*dwell), dur)
+            segs.append((t, t1, "MOVE", g)); t = t1; state = "STOP"
+        else:
+            t1 = min(t + rng.uniform(pause_lo, pause_hi), dur)
+            segs.append((t, t1, "STOP", None)); t = t1; state = "MOVE"
+    return segs
+
+
+def animal(path_xy, t_grid, rng, bank_n, kind="dog", force_gait=None, stride_mul=1.0,
+           rider_kg=0.0, schedule=None):
+    """v4.3: quadruped with semi-Markov bout schedule — species-specific pauses, gait
+    transitions coupled to stride frequency, AR(1) correlated jitter, L/R asymmetry.
+    Replaces the v4.2 metronomic continuous gait. Backward compatible: force_gait and
+    stride_mul work as before. Optional schedule kwarg for herd group sync."""
     mass = {"dog": rng.uniform(10, 30), "boar": rng.uniform(50, 120),
             "jackal": rng.uniform(6, 15), "horse": rng.uniform(400, 700),
             "sheep": rng.uniform(45, 90)}[kind]
     foot = _FOOT[kind]
     stride0 = 1.8 * (mass / 30) ** (-0.148)
-    stride = stride0 * rng.uniform(0.85, 1.15) * float(stride_mul)     # Hz
-    stride = max(stride, 0.85 * stride0 * 0.85)                        # Heglund-Taylor floor clamp
     contact = float(np.clip(0.18 * (mass / 30) ** 0.148, 0.05, 0.5))
-    mass_eff = mass + max(rider_kg, 0.0)                               # v4 rider/pack load
+    mass_eff = mass + max(rider_kg, 0.0)
     per_foot = mass_eff * 9.81 * rng.uniform(1.0, 1.3)
-    gait = force_gait if force_gait else rng.choice(["walk", "trot", "gallop"])
-    em = []; t = t_grid[0] + rng.uniform(0, 0.5)
-    # 4-footfall sequence per stride (the biped-vs-quadruped discriminator)
-    if gait == "walk":
-        offs = [0, 0.25, 0.5, 0.75]
-    elif gait == "trot":
-        offs = [0, 0.0, 0.5, 0.5]            # diagonal pairs
-    else:
-        offs = [0, 0.1, 0.55, 0.6]           # gallop asymmetric
-    fore = [True, False, True, False]        # forelimbs ~30-40% higher
+    fore = [True, False, True, False]
     n = int(contact * FS); tt = np.arange(n) / n
-    # hoof = sharp HF-rich short shock (~6 ms rise, damped HF ring-down);
-    # paw = soft/damped impact (~18 ms rise, no HF ring) — see _FOOT note.
     if foot == "hoof":
         imp_ms, shock_amp, ring_f, ring_zeta = 0.006, 0.9, rng.uniform(180, 320), 0.18
     else:
         imp_ms, shock_amp, ring_f, ring_zeta = 0.018, 0.35, rng.uniform(40, 80), 0.45
-    while t < t_grid[-1]:
-        i = np.searchsorted(t_grid, t); x, y = path_xy[min(i, len(path_xy) - 1)]
-        for off, isf in zip(offs, fore):
-            amp = per_foot * (1.0 if isf else 0.7)
-            shape = np.exp(-((tt - 0.4) / 0.22) ** 2)            # slow GRF lobe (unchanged)
-            Fz = amp * shape
-            # impact-shock transient at heel/hoof strike (foot-type dependent)
-            imp = max(int(imp_ms * FS), 4); k = np.arange(imp)
-            rise = (k / (imp / 3.0)) * np.exp(1 - k / (imp / 3.0))
-            Fz[:imp] += amp * shock_amp * rise
-            # damped sinusoid ring-down riding on the impact (hoof: HF; paw: LF, heavy damp)
-            kr = np.arange(n)
-            ring = np.exp(-ring_zeta * 2 * np.pi * ring_f * kr / FS) * \
-                np.sin(2 * np.pi * ring_f * kr / FS)
-            Fz += amp * shock_amp * 0.5 * ring
-            Fx = 0.2 * Fz * rng.choice([-1, 1])
-            em.append((t + off / stride, x, y, _pad(Fz, bank_n), _pad(Fx, bank_n)))
-        t += 1.0 / stride * rng.normal(1, 0.05)
+
+    # per-individual traits (drawn once)
+    lr_bias = rng.uniform(0, 0.08)
+    ar_state = 0.0
+    ar_rho = rng.uniform(0.7, 0.85)
+
+    dur = float(t_grid[-1] - t_grid[0])
+    sched = schedule if schedule is not None else _activity_schedule(rng, dur, kind, force_gait)
+    em = []; active_gait = "walk"
+    for seg_t0, seg_t1, state, gait in sched:
+        if state == "STOP":
+            continue
+        active_gait = gait or "walk"
+        offs = _GAIT_OFFSETS[active_gait]
+        stride = stride0 * _GAIT_STRIDE_MUL[active_gait] * float(stride_mul)
+        stride = max(stride, 0.85 * stride0 * 0.85)
+        t = t_grid[0] + seg_t0 + rng.uniform(0, 0.3)
+        abs_end = t_grid[0] + seg_t1
+        while t < abs_end and t < t_grid[-1]:
+            i = np.searchsorted(t_grid, t)
+            x, y = path_xy[min(i, len(path_xy) - 1)]
+            # AR(1) stride jitter
+            ar_state = ar_rho * ar_state + np.sqrt(1 - ar_rho**2) * rng.normal(0, 0.10)
+            jitter = float(np.clip(np.exp(ar_state), 0.7, 1.4))
+            # per-stride force noise
+            force_noise = rng.normal(1, 0.05)
+            for fi, (off, isf) in enumerate(zip(offs, fore)):
+                lr = (1.0 + lr_bias / 2) if isf else (0.7 - lr_bias / 2)
+                amp = per_foot * lr * force_noise
+                shape = np.exp(-((tt - 0.4) / 0.22) ** 2)
+                Fz = amp * shape
+                imp = max(int(imp_ms * FS), 4); k = np.arange(imp)
+                rise = (k / (imp / 3.0)) * np.exp(1 - k / (imp / 3.0))
+                Fz[:imp] += amp * shock_amp * rise
+                kr = np.arange(n)
+                ring = np.exp(-ring_zeta * 2 * np.pi * ring_f * kr / FS) * \
+                    np.sin(2 * np.pi * ring_f * kr / FS)
+                Fz += amp * shock_amp * 0.5 * ring
+                Fx = 0.2 * Fz * rng.choice([-1, 1])
+                em.append((t + off / stride, x, y, _pad(Fz, bank_n), _pad(Fx, bank_n)))
+            t += (1.0 / stride) * jitter
     return em, dict(kind="animal", subkind=kind, mass=round(mass, 1),
-                    stride=round(float(stride), 2), gait=gait, foot=foot)
+                    stride=round(float(stride0), 2), gait=active_gait, foot=foot,
+                    n_bouts=sum(1 for s in sched if s[2] == "MOVE"),
+                    n_pauses=sum(1 for s in sched if s[2] == "STOP"))
 
 
 # ============ v4 composite-scene primitives (emissions at a FIXED position) ============

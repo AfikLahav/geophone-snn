@@ -1,0 +1,35 @@
+{
+ "labels": "$GEO_SYNTH_ROOT/labels_v431/windows_3s",
+ "per_class": {
+  "human": {
+   "subkindxstratum": 1.0,
+   "subkindxcondition": 1.0,
+   "subkindxzone": 1.0,
+   "stratumxcondition": 1.0,
+   "stratumxzone": 1.0,
+   "conditionxzone": 1.0
+  },
+  "vehicle": {
+   "subkindxstratum": 1.0,
+   "subkindxcondition": 1.0,
+   "subkindxzone": 1.0,
+   "stratumxcondition": 1.0,
+   "stratumxzone": 1.0,
+   "conditionxzone": 1.0
+  },
+  "animal": {
+   "subkindxstratum": 1.0,
+   "subkindxcondition": 1.0,
+   "subkindxzone": 1.0,
+   "stratumxcondition": 1.0,
+   "stratumxzone": 1.0,
+   "conditionxzone": 1.0
+  }
+ },
+ "missing_pairs": {
+  "human": [],
+  "vehicle": [],
+  "animal": []
+ },
+ "min_pair_coverage": 1.0
+}

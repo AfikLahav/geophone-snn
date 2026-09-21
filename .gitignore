@@ -5,53 +5,21 @@ __pycache__/
 .idea/
 .claude/settings.local.json
 
-# --- Nested git clone of the GitHub repo (roeeds3/Geophone-Project) ---
-Goephone-Project/
-
-# --- Archival originals (duplicate geophone_data.db, real CSVs, Elbit PPTXs, zip) ---
-פרויקט גמר/
-
-# --- Superseded v3 stage snapshots (kept on disk for history; final is simgeo_v3/) ---
-simgeo_v3_src/
-simgeo_v3_scene/
-simgeo_v3_noise/
-simgeo_v3_terrain/
-simgeo_v3_dist/
-simgeo_v3_label/
-
 # --- Large regenerable / external data ---
-# Synthetic corpus DB (regenerable via simgeo generators; live corpora on G:\geophone_synth)
 geophone_data.db
-# Green's-function banks: regenerable from simgeo_banks/provenance_*.py (JSONs stay tracked)
 terrain_models/*.npz
-webui/server/terrain_models/*.npz
-# External corpora (fetch instructions in datasets/FETCH_PLAN.md + DATASETS.md)
 datasets/*
 !datasets/DATASETS.md
 !datasets/FETCH_PLAN.md
-!datasets/compat/
+!datasets/README.md
 !datasets/real_noise_fetch/
-!datasets/noise_atlas/
-# noise_atlas: keep code, docs, fits (sim depends on r3_fits.npz); drop derived PSD dumps
-datasets/noise_atlas/footprintid_noise_psds.npz
-datasets/noise_atlas/pnw_noise_psds.npz
+!datasets/background_model/
+datasets/background_model/footprintid_noise_psds.npz
+datasets/background_model/pnw_noise_psds.npz
 
-# --- Vendored copies / downloadable binaries ---
-webui/node_modules/
-webui/server/data/*.csv
-tools/
+# --- Training outputs (regenerable) ---
+training/out/
 
 # --- Analysis caches ---
-gap_study/model_review/synth_cache.npz
-gap_study/model_review/real_cache.npz
-
-# --- house-sim datasets (large external binaries) ---
-datasets/resplan/*.pkl
-datasets/osm_israel_buildings/*.gpkg
 *.pkl
 *.gpkg
-# --- mesh prototype artifacts (regenerable) ---
-mesh_prototype/*.png
-mesh_prototype/*.msh
-mesh_prototype/*.vtk
-mesh_prototype/__pycache__/

@@ -1,20 +1,16 @@
-"""Phase D1 — v4 feature extraction. Joins the Phase-L labels (labels_v4/windows_<W>s) with
-the corpus blobs: reconstructs the MODEL INPUT (sum of per-class clean blobs + noise, railed
-+-256 mV) and computes the 132-feature bank per LABELED window, carrying all label columns
-through. One parquet per shard -> features_v4_<W>s/.
+"""Extract the 132-feature v4.3.1 tables from labeled scene shards.
 
-Model-input reconstruction (D2): x = clean_mv (+ clean_mv2) + noise_mv, clipped +-256 mV
-(same convention as extract_features.py:72-76; the per-class blobs are the answer key, the
-sum is what the sensor delivers).
+Usage:
+    python simgeo/simgeo_v42/extract_features_v4.py [window_s] [dataset_dir] [labels_dir] [feature_root] [workers]
 
-Usage: python simgeo_v4/extract_features_v4.py <W_s> [corpus] [labels_root] [feat_root] [nw]
+For a three-second window and the default feature root, output is written to
+``$GEO_SYNTH_ROOT/features_v431_3s``.
 """
 import os, sys, glob, time, sqlite3, warnings
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 warnings.filterwarnings("ignore")
 HERE = os.path.dirname(os.path.abspath(__file__))
-DB_ROOT = os.environ.get("GEO_DB_ROOT", r"G:/geophone_synth")   # <- set GEO_DB_ROOT to your data location
 sys.path.insert(0, HERE)
 
 FS = 1000.0
@@ -26,10 +22,12 @@ LABEL_CARRY = (["scene_id", "t0", "split", "coarse", "subkind", "profile_id", "f
 # labels; absent for v4). tier/coupling_form are strings, the rest floats.
 V42_META = ("tier", "gain_log10", "quant_lsb", "rail_mv", "coupling_form")
 V42_META_STR = ("tier", "coupling_form")
+# GEO_BANDLIMIT_FS=200 -> matched-band feature tables for the 200 Hz real datasets (empty above 100 Hz)
+BANDLIMIT_FS = int(os.environ.get("GEO_BANDLIMIT_FS", "0") or 0)
 
 
 def run_shard(args):
-    corpus_shard, labels_shard, out_path, W = args
+    dataset_shard, labels_shard, out_path, W = args
     import pyarrow as pa, pyarrow.parquet as pq
     import features as F
     nw = int(W * FS)
@@ -40,7 +38,7 @@ def run_shard(args):
     by_scene = {}
     for i, sid in enumerate(lab["scene_id"]):
         by_scene.setdefault(sid, []).append(i)
-    db = sqlite3.connect(corpus_shard)
+    db = sqlite3.connect(dataset_shard)
     # v4.2 Change 3: per-scene ADC rail + quantization on the MODEL INPUT (never the clean blobs,
     # which stay exact for SNR/D2). Read from the scenes table when present; else v4 default 256/cont.
     have = {r[1] for r in db.execute("PRAGMA table_info(scenes)")}
@@ -68,6 +66,15 @@ def run_shard(args):
                 x = np.clip(x, -rail, rail)                     # ADS rail (model input; blobs untouched)
             if quant > 0:
                 x = np.round(x / quant) * quant                # ADC quantization nuisance
+            if BANDLIMIT_FS:
+                # matched-band arm: the model input is decimated to BANDLIMIT_FS and brought back
+                # to 1000 Hz with the same polyphase resampler the real 200 Hz datasets go through,
+                # so synthetic and real windows share the same empty band above the Nyquist
+                from scipy.signal import resample_poly
+                from math import gcd
+                n0 = len(x); g = gcd(1000, BANDLIMIT_FS)
+                x = resample_poly(resample_poly(x, BANDLIMIT_FS // g, 1000 // g), 1000 // g, BANDLIMIT_FS // g)
+                x = x[:n0] if len(x) >= n0 else np.pad(x, (0, n0 - len(x)))
             pre = F.scene_precompute(x)
             for i in idxs:
                 i0 = int(round(lab["t0"][i] * FS))
@@ -80,7 +87,7 @@ def run_shard(args):
         except Exception as e:
             fail += 1
             if fail <= 3:
-                print(f"  {os.path.basename(corpus_shard)} sid {sid} FAIL {type(e).__name__}: {e}", flush=True)
+                print(f"  {os.path.basename(dataset_shard)} sid {sid} FAIL {type(e).__name__}: {e}", flush=True)
     X = np.stack(feats) if feats else np.empty((0, F.NFEAT), np.float32)
     X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
     cols = {}
@@ -98,19 +105,20 @@ def run_shard(args):
     for j, name in enumerate(F.FEATURE_NAMES):
         cols[name] = pa.array(X[:, j])
     pq.write_table(pa.table(cols), out_path, compression="zstd")
-    return os.path.basename(corpus_shard), done, fail, len(X), (time.time() - t0) / 60
+    return os.path.basename(dataset_shard), done, fail, len(X), (time.time() - t0) / 60
 
 
 def main():
     W = float(sys.argv[1]) if len(sys.argv) > 1 else 3.0
-    corpus = sys.argv[2] if len(sys.argv) > 2 else DB_ROOT + r"/corpus_v42"
-    lroot = sys.argv[3] if len(sys.argv) > 3 else DB_ROOT + r"/labels_v42"
-    froot = sys.argv[4] if len(sys.argv) > 4 else DB_ROOT + r"/features_v42"
+    from config_paths import DATASET_DIR as _CV42, LABELS_DIR as _LV42, FEATURES_DIR as _FV42
+    dataset = sys.argv[2] if len(sys.argv) > 2 else _CV42
+    lroot = sys.argv[3] if len(sys.argv) > 3 else _LV42
+    froot = sys.argv[4] if len(sys.argv) > 4 else _FV42
     nw = int(sys.argv[5]) if len(sys.argv) > 5 else 7
     tag = f"{W:g}s"
     ldir = os.path.join(lroot, f"windows_{tag}"); fdir = os.path.join(froot + f"_{tag}")
     os.makedirs(fdir, exist_ok=True)
-    cshards = sorted(glob.glob(os.path.join(corpus, "shard_*.sqlite")),
+    cshards = sorted(glob.glob(os.path.join(dataset, "shard_*.sqlite")),
                      key=lambda p: int(p.split("_")[-1].split(".")[0]))
     args = []
     for cs in cshards:

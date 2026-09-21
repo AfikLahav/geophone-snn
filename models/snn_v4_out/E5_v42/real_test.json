@@ -1,9 +1,0 @@
-{
- "FAR_on_nothing": {
-  "human_head_FA_rate_on_nothing": 0.0,
-  "vehicle_head_FA_rate_on_nothing": 0.0032085561497326204
- },
- "human_vs_vehicle_AUC": 0.9925215125850744,
- "domain_classifier_AUC": 0.9999994581520927,
- "note": "1 session/class -> indicative, confound-aware; see REAL_FEATURE_ANALYSIS.md"
-}

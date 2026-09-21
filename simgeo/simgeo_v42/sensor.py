@@ -17,7 +17,7 @@ COUPLING_MODE = os.environ.get("GEO_COUPLING_MODE", "lowpass")
 COUPLING_BUMP_DB = float(os.environ.get("GEO_COUPLING_BUMP_DB", "8.0"))
 # v4.1 amplitude/line-fidelity flags (DISCREPANCY_REPORT §7-A). Defaults reproduce v4.
 GAIN_LOG10 = tuple(float(x) for x in os.environ.get("GEO_GAIN_LOG10", "2.3,2.9").split(","))
-SPUR_P = float(os.environ.get("GEO_SPUR_P", "1.0"))          # P(spurious 150 Hz resonance active)
+SPUR_P = float(os.environ.get("GEO_SPUR_P", "0.0"))          # v4.3: OFF by default (unverified; re-enable via env)
 LINES_MODE = os.environ.get("GEO_LINES_MODE", "v4")          # "v41" = mains level in dB ABOVE FLOOR
 
 # v4.2 sensor-chain domain-randomization spans (Change 3). Nuisances become RANDOMIZED axes the
@@ -51,7 +51,7 @@ def coupling_response(n, fc, qc, fs=FS, form=None):
     per-scene `form` override ('lowpass'/'bump') when GEO_COUPLING_MODE=='mix' (v4.2 Change 3).
     lowpass: 2nd-order low-pass (unity DC, -40 dB/dec above fc).
     bump:    resonance peak on flat unity (=1 away from fc) -> preserves the upper band.
-    The corpus render AND the per-class H-rebuild in gen_scene MUST pass the SAME form."""
+    The dataset render AND the per-class H-rebuild in gen_scene MUST pass the SAME form."""
     mode = form if form is not None else COUPLING_MODE
     if mode == "bump":
         f = np.fft.rfftfreq(n, 1 / fs); fr = np.maximum(f, 1e-9)
@@ -198,9 +198,9 @@ def render_hp(v_signal, v_ground_noise, rng, profile_fc, profile_q, p_lines=0.5,
                           if COUPLING_MODE == "mix" else COUPLING_MODE)
     p["quant_lsb"] = float(rng.choice(QUANT_LEVELS)) if QUANT_LEVELS is not None else 0.0
     p["rail_mv"] = float(rng.choice(RAIL_LEVELS)) if RAIL_LEVELS is not None else float(ADC_CLIP_MV)
-    H = (coupling_response(n, p["fc"], p["qc"], form=p["coupling_form"]) *
-         geophone_response(n, p["f0"], p["h"], p["G"]) *
-         spurious_bump(n, p["f_spur"], p["q_spur"], p["spur_db"]))
+    # v4.3: coupling removed (spiked geophone is flat at 5-100 Hz; Krohn 1984, Drijkoningen 2000).
+    # Spurious bump OFF by default (SPUR_P=0). Both functions left intact for diagnostics.
+    H = geophone_response(n, p["f0"], p["h"], p["G"])
     sig_v = np.fft.irfft(np.fft.rfft(v_signal) * H, n=n)
     noi_v = np.fft.irfft(np.fft.rfft(v_ground_noise) * H, n=n)
     clean_mv = (sig_v * p["gain"] * 1e3).astype(np.float32)
@@ -229,8 +229,8 @@ def render(v_signal, v_ground_noise, rng, profile_fc, profile_q, sensor=None):
              G=rng.normal(28.8, 1.4), gain=10 ** rng.uniform(2.3, 2.9),
              fc=profile_fc * 10 ** rng.uniform(-0.15, 0.15),
              qc=profile_q, **(sensor or {}))
-    H = (coupling_response(n, p["fc"], p["qc"]) *
-         geophone_response(n, p["f0"], p["h"], p["G"]))
+    # v4.3: coupling removed (same as render_hp)
+    H = geophone_response(n, p["f0"], p["h"], p["G"])
     sig_v = np.fft.irfft(np.fft.rfft(v_signal) * H, n=n)
     noi_v = np.fft.irfft(np.fft.rfft(v_ground_noise) * H, n=n)
     # electronic noise at volts (pre-gain), fitted to rig floor 0.08 mV RMS at output

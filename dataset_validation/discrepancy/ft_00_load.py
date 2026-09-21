@@ -15,8 +15,8 @@ import numpy as np
 import pandas as pd
 
 # ---- paths -----------------------------------------------------------------
-ROOT = r"S:\ALL PROJECTS\geophone sensor\finals project\finals project"
-SYNTH_GLOB = r"G:\geophone_synth\features_v4_3s\features_shard_*.parquet"
+ROOT = os.environ.get("PROJECT_ROOT", ".")
+SYNTH_GLOB = os.path.join(_GEO_ROOT, "features_v4_3s/features_shard_*.parquet")
 DATA_DIR   = os.path.join(ROOT, "Goephone-Project", "geophone_data")
 SCALER_PATH= os.path.join(ROOT, "snn_v4_out", "E2_uniform_sampler", "scaler.json")
 SQLITE_PATH= os.path.join(ROOT, "feature_analysis_v2.sqlite")
@@ -24,6 +24,8 @@ SQLITE_PATH= os.path.join(ROOT, "feature_analysis_v2.sqlite")
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "simgeo_v4"))
 import features as F
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 
 # ---- feature families (index ranges in FEATURE_NAMES) ----------------------
 FEATURE_NAMES = F.FEATURE_NAMES

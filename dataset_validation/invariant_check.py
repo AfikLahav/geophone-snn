@@ -1,7 +1,7 @@
-"""Empirical verification of the Corpus Design Invariant diagnostics: compute B (balance),
+"""Empirical verification of the Dataset Design Invariant diagnostics: compute B (balance),
 C (difficulty coverage), N (class-nuisance neutrality) for v3 and v4 and check the ordering
 matches the OBSERVED transfer outcomes (v4 > v3). If the diagnostics track reality on corpora
-whose transfer we already measured, the formula is a valid steering instrument for v4.2+.
+whose transfer we already measured, the formula is a valid steering instrument for v4.3.1+.
 
   B = 1 - mean_class TV(realized subkind mass within class, uniform)     target >= 0.85
   C = min_class fraction of 5 dB SNR bins in [tau_lo, +40] holding >=1% of present windows
@@ -10,14 +10,16 @@ whose transfer we already measured, the formula is a valid steering instrument f
 """
 import os, sys, glob, json
 import numpy as np, pandas as pd
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 HERE = os.path.dirname(os.path.abspath(__file__))
 GATES = json.load(open(os.path.join(HERE, "gates_3s.json")))["classes"]
 CLASSES = ("human", "vehicle", "animal")
 
-# v4.2 Change 2: per-subkind PHYSICAL reachability ceilings (snr_maps.py writes this). When present,
+# v4.3.1 Change 2: per-subkind PHYSICAL reachability ceilings (snr_maps.py writes this). When present,
 # the F gate exempts bins ABOVE a subkind's true ceiling (principled) instead of the realized-p99.5
 # proxy. Absent (v4 runs) -> falls back to p99.5.
-_CEIL_PATH = r"G:/geophone_synth/config/subkind_ceilings_v42.json"
+_CEIL_PATH = os.path.join(_GEO_ROOT, "config/subkind_ceilings_v431.json")
 SUBK_CEIL = (json.load(open(_CEIL_PATH)).get("subkind_ceiling_db", {})
              if os.path.exists(_CEIL_PATH) else {})
 
@@ -43,7 +45,7 @@ def cramers_v(a, b):
 def f_gate(df):
     """F: every physically-reachable (subkind x 5dB detectable bin) cell holds >= FLOOR windows.
     Reachability v1: bins at/below the subkind's own p99.5 realized SNR (bins above it are
-    treated unreachable -> exempt+reported; proper ceilings come from per-subkind maps in v4.2)."""
+    treated unreachable -> exempt+reported; proper ceilings come from per-subkind maps in v4.3.1)."""
     FLOOR = 300
     cells = []
     for c in CLASSES:
@@ -53,7 +55,7 @@ def f_gate(df):
         for sk, g in d.groupby("subkind", observed=True):
             snr = g[f"{c}_snr"].to_numpy()
             if len(snr) < 50: continue
-            ceil = SUBK_CEIL.get(str(sk))                     # v4.2 true physical reachability ceiling
+            ceil = SUBK_CEIL.get(str(sk))                     # v4.3.1 true physical reachability ceiling
             if ceil is None:
                 ceil = np.percentile(snr, 99.5)               # v4 fallback (realized proxy)
             h, _ = np.histogram(np.clip(snr, edges[0], edges[-1]), bins=edges)
@@ -68,7 +70,8 @@ def f_gate(df):
 
 def diagnose(tag, pat, cols_extra=()):
     sh = sorted(glob.glob(pat))
-    import pyarrow.parquet as _pq                              # v4.2: detect optional Q_j columns
+    import pyarrow.parquet as _pq                              # v4.3.1: detect optional Q_j columns
+
     avail = set(_pq.ParquetFile(sh[0]).schema.names)
     qcols = [c for c in ("tier", "gain_log10", "quant_lsb", "rail_mv", "coupling_form") if c in avail]
     base = ["coarse", "subkind", "family"] + [f"{c}_{s}" for c in CLASSES for s in ("level", "snr")]
@@ -97,7 +100,7 @@ def diagnose(tag, pat, cols_extra=()):
     out["N_class_stratum_V"] = round(cramers_v(df["coarse"], strat), 3)
     if "noise_condition" in df.columns:
         out["N_class_condition_V"] = round(cramers_v(df["coarse"], df["noise_condition"]), 3)
-    # v4.2 [R5]: neutrality of each class-independent Q_j axis (V ~ 0 confirms class-independence;
+    # v4.3.1 [R5]: neutrality of each class-independent Q_j axis (V ~ 0 confirms class-independence;
     # a nonzero V would mean a sensor draw leaked the label and MUST sink the CDI). gain is
     # continuous -> quintile-binned; the rest are categorical (inf-safe via astype(str)).
     for a in qcols:
@@ -120,7 +123,7 @@ def cdi_score(r, tag=None):
     subs["N_stratum"] = min(0.05 / max(r["N_class_stratum_V"], 1e-6), 1.0)   # target V <= 0.05
     if "N_class_condition_V" in r:
         subs["N_condition"] = min(0.05 / max(r["N_class_condition_V"], 1e-6), 1.0)
-    for k, val in r.items():                                                  # v4.2: each Q_j axis
+    for k, val in r.items():                                                  # v4.3.1: each Q_j axis
         if k.startswith("N_") and k.endswith("_V") and k not in ("N_class_stratum_V", "N_class_condition_V"):
             subs["N_" + k[2:-2]] = min(0.05 / max(val, 1e-6), 1.0)
     if "F_floor_frac" in r:
@@ -144,9 +147,9 @@ if __name__ == "__main__":
         res = [diagnose(sys.argv[1], sys.argv[2],
                         ("noise_condition",) if len(sys.argv) > 3 and sys.argv[3] == "1" else ())]
     else:
-        res = [diagnose("v3", r"G:/geophone_synth/features_v3/features_shard_*.parquet"),
-               diagnose("v4", r"G:/geophone_synth/labels_v4/windows_3s/labels_shard_*.parquet", ("noise_condition",))]
-    print(f"{'corpus':6s} {'B':>6s} {'C':>6s} {'N_str':>6s} {'N_cond':>7s} {'F':>6s} {'CDI':>6s}  bottleneck / subscores")
+        res = [diagnose("v3", os.path.join(_GEO_ROOT, "features_v3/features_shard_*.parquet")),
+               diagnose("v4", os.path.join(_GEO_ROOT, "labels_v4/windows_3s/labels_shard_*.parquet"), ("noise_condition",))]
+    print(f"{'dataset':6s} {'B':>6s} {'C':>6s} {'N_str':>6s} {'N_cond':>7s} {'F':>6s} {'CDI':>6s}  bottleneck / subscores")
     for r in res:
         cdi, bott, subs = cdi_score(r, tag=r["tag"])
         r["CDI"] = cdi; r["bottleneck"] = bott; r["subscores"] = subs

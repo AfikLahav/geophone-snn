@@ -13,6 +13,8 @@ across-profile synthetic envelope.
 import os, sys, glob, sqlite3, json
 import numpy as np, pandas as pd
 from scipy.signal import welch
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 FS = 1000.0
 BANDS = [(5, 25), (20, 55), (55, 90), (90, 180)]
@@ -54,7 +56,7 @@ for k, (exc, raw) in real.items():
     print(f"  {k:6s} excess {np.round(exc,3)} | raw-active {np.round(raw,3)}")
 
 # ---- synthetic per profile ----
-shards = sorted(glob.glob(r"G:/geophone_synth/corpus_v4/shard_*.sqlite"))
+shards = sorted(glob.glob(os.path.join(_GEO_ROOT, "dataset_v431/shard_*.sqlite")))
 prof = {}                                                    # profile -> {class: [bandfrac,...]}
 meta = {}                                                    # profile -> (family, vs)
 need = {"human": "human", "car": "vehicle"}

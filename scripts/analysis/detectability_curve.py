@@ -10,13 +10,15 @@ import os, sys, json, glob, sqlite3
 import numpy as np, pandas as pd
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "simgeo"))
-OUT = os.path.join(HERE, "snn_v2_out"); PNG = os.path.join(OUT, "plots"); FEAT_DIR = r"G:/geophone_synth/features_v2"
+OUT = os.path.join(HERE, "snn_v2_out"); PNG = os.path.join(OUT, "plots"); FEAT_DIR = os.path.join(_GEO_ROOT, "features_v2")
 con = sqlite3.connect(os.path.join(HERE, "feature_analysis_v2.sqlite"))
 FEATURES = [r[0] for r in con.execute("SELECT feature FROM feature_scorecard WHERE discriminative=1 AND is_rep=1")]; con.close()
 T = 3.0
 BANDW = {"human": 70.0, "animal": 70.0, "vehicle": 20.0}   # class diagnostic-band width (Hz)
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_curve
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 
 cols = FEATURES + ["coarse", "profile_id", "split", "human_snr", "vehicle_snr", "animal_snr"]
 df = pd.concat([pd.read_parquet(s, columns=cols) for s in sorted(glob.glob(os.path.join(FEAT_DIR, "*.parquet")))[:3]],

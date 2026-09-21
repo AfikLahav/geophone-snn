@@ -14,8 +14,10 @@ import numpy as np
 import pandas as pd
 from scipy.stats import kurtosis as sp_kurtosis
 
-BASE = r"S:\ALL PROJECTS\geophone sensor\finals project\finals project"
-SYNTH_DB = r"G:\geophone_synth\corpus_v4\shard_0.sqlite"
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
+BASE = os.environ.get("PROJECT_ROOT", ".")
+SYNTH_DB = os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite")
 CLIP_MV = 256.0
 WIN_S = 3.0  # 3-second windows
 

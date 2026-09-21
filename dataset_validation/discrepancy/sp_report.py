@@ -4,6 +4,8 @@ discrepancy_spectral.json and render discrepancy_spectral.md.
 import os, json
 import sp_lib as L
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 O = L.OUTDIR
 def rd(name):
     return json.load(open(os.path.join(O, name)))
@@ -12,11 +14,11 @@ psd = rd('sp_out_psd.json'); lines = rd('sp_out_lines.json')
 coup = rd('sp_out_coupling.json'); meta = rd('sp_meta.json')
 
 merged = {
-    'title': 'REAL geophone vs SYNTHETIC corpus_v4 -- spectral discrepancy report',
+    'title': 'REAL geophone vs SYNTHETIC dataset_v431 -- spectral discrepancy report',
     'generated': '2026-07-06',
     'data': {
         'real_rigs': 'human-session (human.csv/human_nothing.csv), car-session (car.csv/car_nothing.csv), field 2026-06 (geophone_2026*.csv)',
-        'synth': 'G:/geophone_synth/corpus_v4/shard_0.sqlite (11424 scenes)',
+        'synth': os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite (11424 scenes)"),
         'units': 'mV; PSD mV^2/Hz; fs=1000 Hz; band 1-450 Hz',
         'model_input': 'clip(noise_mv + clean_mv(+clean_mv2), +/-256)'},
     'config': psd['config'],

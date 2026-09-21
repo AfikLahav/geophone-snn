@@ -9,7 +9,7 @@ from spikingjelly.activation_based import neuron, surrogate, layer, functional
 
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "simgeo"))
 import features as Fx
-OUT = os.path.join(HERE, "snn_v2_out"); FEAT_DIR = r"G:/geophone_synth/features_v2"
+OUT = os.path.join(HERE, "snn_v2_out"); FEAT_DIR = os.path.join(_GEO_ROOT, "features_v2")
 DEV = "cuda" if torch.cuda.is_available() else "cpu"; T = 4
 sc = json.load(open(os.path.join(OUT, "scaler.json"))); FEATURES = sc["features"]; NF = len(FEATURES)
 mu = np.array(sc["mean"], np.float32); sd = np.array(sc["std"], np.float32); CLIPZ = sc["clip"]
@@ -58,6 +58,8 @@ with torch.no_grad():
 logits = {k: torch.cat(v) for k, v in logits.items()}
 
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, roc_auc_score
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 def ordinal_pred(lg): p = torch.sigmoid(lg); return ((p[:, 0] > .5).int() + (p[:, 1] > .5).int()).numpy()
 rep = {}
 for nm, lg, lvl in (("human", logits["human"], H), ("animal", logits["animal"], A)):

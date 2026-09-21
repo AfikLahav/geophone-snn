@@ -10,7 +10,7 @@ Arms:
             (controls for 'fewer terrains/less data').
 
 Usage: python make_terrain_subset.py <matched|anti|random>
-Writes G:/geophone_synth/features_v4_3s_t<arm>/features_shard_*.parquet
+Writes $GEO_SYNTH_ROOT/features_v4_3s_t<arm>/features_shard_*.parquet
 """
 import os, sys, glob
 import numpy as np
@@ -18,9 +18,11 @@ import pyarrow.parquet as pq
 import pyarrow.compute as pc
 import pyarrow as pa
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 SOFT = {"soft_soil", "loess"}                                   # car-matched families
 FIRM = {"kurkar", "rock", "gravel", "dirt_road"}                # human-matched families
-SRC = r"G:/geophone_synth/features_v4_3s"
+SRC = os.path.join(_GEO_ROOT, "features_v4_3s")
 arm = sys.argv[1]
 DST = SRC + f"_t{arm}"
 os.makedirs(DST, exist_ok=True)
@@ -42,6 +44,7 @@ for s in shards:
     fam = pc.cast(t.column("family"), pa.string())
     coarse = pc.cast(t.column("coarse"), pa.string())
     import numpy as _np
+
     famv = _np.array(fam.to_pylist()); cov = _np.array(coarse.to_pylist())
     if arm == "matched":
         keep = ((cov == "vehicle") & _np.isin(famv, list(SOFT))) | \

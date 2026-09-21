@@ -1,0 +1,13 @@
+# Dataset generation and model training
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.2
+pandas>=2.0
+pyarrow>=12.0
+PyWavelets>=1.4
+pyyaml>=6.0
+matplotlib>=3.7
+spikingjelly==0.0.0.0.14
+pyprop8==1.1.5
+
+# Install a PyTorch build suitable for the target CPU or CUDA environment separately.

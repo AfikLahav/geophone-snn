@@ -1,5 +1,5 @@
 """R3-anchored ambient/weather noise — uses the REAL fitted PSDs from the 55 GB fetch
-(datasets/noise_atlas/r3_fits.npz) instead of literature placeholders.
+(datasets/background_model/r3_fits.npz) instead of literature placeholders.
 
 For each scene's condition (calm / wind tier / rain), draw a fitted real PSD SHAPE (pooled
 across the YW/ZG/LASSO/IS sites = site randomization), generate ground-motion noise with that
@@ -23,7 +23,7 @@ def _load():
     global _FITS, _POOLS, _LEVELS
     if _POOLS is not None:
         return
-    p = os.path.join(HERE, "..", "..", "datasets", "noise_atlas", "r3_fits.npz")
+    p = os.path.join(HERE, "..", "..", "datasets", "background_model", "r3_fits.npz")
     _FITS = dict(np.load(p))
     _POOLS = {c: [] for c in COND_BINS}
     band_pow = {c: [] for c in COND_BINS}
@@ -86,12 +86,24 @@ def _psd_on_grid(f_src, psd_src, n, fs):
 
 # ---------------------------------------------------------------- C1/C2 helpers
 def _lowpass_env(n, fc_hz, rng, fs):
-    """Unit-std low-passed Gaussian (slow random envelope), corner fc_hz."""
+    """Unit-std low-passed Gaussian (slow random envelope), corner fc_hz.
+
+    v4.3.1 blowup fix: when fc_hz fell below the first non-DC rfft bin (short scene
+    + long gust timescale, i.e. wind_low 3-5 m/s at 20-28 s), the old code zeroed
+    EVERY non-DC bin, leaving a constant array with std ~0; the (std + 1e-12)
+    normalization then blew the envelope up ~1e9x. Through the wind-gust AM (the one
+    multiplicative path with no renormalization after it) this made ~3% of ALL
+    v4.2/v4.3 scenes carry ground noise ~1e9x too loud (and a similar slice ~26 dB
+    too quiet via the negative-DC clip branch). Fix: always keep at least the first
+    non-DC bin (one slow swell across the scene — the physically right limit of a
+    gust slower than the scene) and hard-guard the degenerate std."""
     kf = np.fft.rfftfreq(n, 1 / fs)
     E = np.fft.rfft(rng.standard_normal(n))
-    E[kf > fc_hz] = 0.0
+    cut = max(fc_hz, kf[1]) if len(kf) > 1 else fc_hz
+    E[kf > cut] = 0.0
     e = np.fft.irfft(E, n=n)
-    return e / (e.std() + 1e-12)
+    s = e.std()
+    return e / s if s > 1e-9 else np.zeros(n)
 
 
 def _impulsive_transients(n, rng, fs, dens_per_s, amp_scale, band=(15.0, 90.0)):
@@ -227,7 +239,7 @@ def ground_noise(n, wind_ms, rain_mmh, rng, base_level=None, fs=1000.0):
     # PUBLISHED near-surface vertical ambient velocity RMS: ~1e-7..1e-6 m/s at quiet-moderate
     # land sites, rising to ~1e-5 m/s at culturally noisy sites (Peterson 1993 NLNM/NHNM
     # extended to 100 Hz for very-quiet desert; Bormann NMSOP cultural-noise band; the R3
-    # in-band weather corpus). This base lands the SNR-distance crossings at the published
+    # in-band weather dataset). This base lands the SNR-distance crossings at the published
     # field detection ranges (human ~15-50 m, vehicle hundreds of m, animal tens of m;
     # Koc & Yegin 2013; Pakhomov SPIE 5071/5417). Median 10**-5.6 = 2.5e-6 m/s.
     CALIB_BASE_LOG10 = -5.6                                # median 2.5e-6 m/s (was -8.6)

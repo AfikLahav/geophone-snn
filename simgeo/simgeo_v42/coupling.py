@@ -10,7 +10,7 @@ ordering (compressed) and a physically-plausible burial/soil spread.
 
 anchor_fc replaces the CENTER of the coupling draw; render_hp's own +-0.15-decade jitter
 (sensor.py:145) still rides on top as fine per-scene spread. MUST be applied identically
-in the corpus render and the SNR(r) maps so the maps match the corpus.
+in the dataset render and the SNR(r) maps so the maps match the dataset.
 """
 import numpy as np
 

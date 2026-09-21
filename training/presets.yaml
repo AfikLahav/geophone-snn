@@ -1,0 +1,72 @@
+# Model presets for the geophone SNN detector.
+# Use with: python -m training.train --preset <name>
+#
+# Shared defaults (applied to every preset unless overridden):
+#   max_steps: 20000        batch: 4096          lr: 5.0e-4
+#   warmup: 1000            schedule: cosine      weight_decay: 1.0e-4
+#   ema_decay: 0.999        early_stop: false     select: last
+#   features: cumulative:cep16  (the 77-feature working set)
+#   heads: 2head_noanimal   (person and vehicle; animal scenes removed from training)
+#   T: 4                    (spiking time steps)
+#   dropout: 0.1            neuron: plif          norm: bn
+
+defaults:
+  max_steps: 20000
+  batch: 4096
+  lr: 5.0e-4
+  warmup: 1000
+  schedule: cosine
+  weight_decay: 1.0e-4
+  ema_decay: 0.999
+  early_stop: false
+  select: last
+  features: "cumulative:cep16"
+  heads: "2head_noanimal"
+  T: 4
+  dropout: 0.1
+  neuron: plif
+  norm: bn
+
+presets:
+  tiny:
+    widths: [64, 32]
+    low_rank: 16
+    # ~4,770 parameters. First layer factored through a 16-wide bottleneck.
+
+  medium:
+    widths: [256, 128]
+    # ~54,000 parameters.
+
+  large:
+    widths: [512, 256, 128]
+    # ~206,000 parameters.
+
+  tiny_person_only:
+    widths: [64, 32]
+    low_rank: 16
+    heads: "1head_human"
+    # Same as tiny but with only a person-presence output.
+    # Vehicle scenes are kept in training as negatives for the person head.
+
+  tiny_ann:
+    widths: [64, 32]
+    low_rank: 16
+    kind: ann
+    T: 1
+    ann_passes: 1
+    # Non-spiking twin of the tiny model: same shape, standard units, one pass.
+
+  medium_ann:
+    widths: [256, 128]
+    kind: ann
+    T: 1
+    ann_passes: 1
+    # Non-spiking twin of the medium model.
+
+
+  large_ann:
+    widths: [512, 256, 128]
+    kind: ann
+    T: 1
+    ann_passes: 1
+    # Non-spiking twin of the large model.

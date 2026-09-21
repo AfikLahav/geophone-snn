@@ -1,9 +1,0 @@
-{
- "SNN_from_scratch_on_real_5fold": 0.9664054388872622,
- "SNN_scratch_std": 0.014783072230789129,
- "synth_pretrained_finetuned_5fold": 0.9766155366348708,
- "finetune_std": 0.014433139337702806,
- "logreg_ref": 0.986,
- "hgb_ref": 0.983,
- "ensemble": 5
-}

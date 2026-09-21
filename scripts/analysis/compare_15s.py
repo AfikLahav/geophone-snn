@@ -32,10 +32,10 @@ def loadcsv(fn):
 hn = loadcsv("human_nothing.csv"); cn = loadcsv("car_nothing.csv")
 hum = loadcsv("human.csv"); car = loadcsv("car.csv")
 
-# ---------------- synthetic 'nothing' waveforms from corpus_v2 ----------------
+# ---------------- synthetic 'nothing' waveforms from dataset_v2 ----------------
 synth_waves = []
 try:
-    sh = sorted(glob.glob("G:/geophone_synth/corpus_v2/shard_*.sqlite"))[0]
+    sh = sorted(glob.glob(os.path.join(_GEO_ROOT, "dataset_v2/shard_*.sqlite")))[0]
     con = sqlite3.connect(sh)
     rows = con.execute("SELECT s.scene_id, s.fs, w.n_samples, w.clean_mv, w.noise_mv "
                        "FROM scenes s JOIN waveforms w ON s.scene_id=w.scene_id "
@@ -183,7 +183,7 @@ try:
         return np.nan_to_num(np.stack(feats))[:, fidx]
     Xnew = featurize(new); Xhn = featurize(hn); Xcn = featurize(cn)
     # synthetic nothing features from features_v2 (precomputed)
-    pq = sorted(glob.glob("G:/geophone_synth/features_v2/features_shard_*.parquet"))[0]
+    pq = sorted(glob.glob(os.path.join(_GEO_ROOT, "features_v2/features_shard_*.parquet")))[0]
     sdf = pd.read_parquet(pq, columns=FEATS + ["coarse"])
     Xsyn = sdf[sdf["coarse"] == "nothing"][FEATS].to_numpy(np.float32)
     rng = np.random.default_rng(0); Xsyn = Xsyn[rng.choice(len(Xsyn), min(800, len(Xsyn)), replace=False)]
@@ -204,5 +204,7 @@ try:
     print(f"Layer B: NEW {len(Xnew)} win, human_nothing {len(Xhn)}, car_nothing {len(Xcn)}, synth {len(Xsyn)} -> 07_feature_pca.png")
 except Exception as e:
     import traceback; print("Layer B FAILED:", e); traceback.print_exc()
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 
 print("\nDONE ->", OUT)

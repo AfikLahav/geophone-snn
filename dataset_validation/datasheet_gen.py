@@ -1,5 +1,5 @@
-"""D gate — corpus datasheet generator (Gebru et al. 2021 'Datasheets for Datasets' applied
-to a synthetic corpus). Records everything needed for (a) threshold-time prior inversion
+"""D gate — dataset datasheet generator (Gebru et al. 2021 'Datasheets for Datasets' applied
+to a synthetic dataset). Records everything needed for (a) threshold-time prior inversion
 (per-cell training mass pi_train), (b) the reviewer audit trail (declared vs realized
 composition), (c) reproducibility (Q_j spans, seeds, documented couplings).
 
@@ -10,11 +10,11 @@ import os, sys, glob, json
 import numpy as np, pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LABELS = sys.argv[1] if len(sys.argv) > 1 else r"G:/geophone_synth/labels_v4/windows_3s"
+LABELS = sys.argv[1] if len(sys.argv) > 1 else os.path.join(_GEO_ROOT, "labels_v4/windows_3s")
 TAG = sys.argv[2] if len(sys.argv) > 2 else "v4"
 CLASSES = ("human", "vehicle", "animal")
 
-# ---- DECLARED design (per corpus revision; edit when the generator config changes) ----
+# ---- DECLARED design (per dataset revision; edit when the generator config changes) ----
 DECLARED = {
     "v4": {
         "seed": 20260706,
@@ -31,7 +31,7 @@ DECLARED = {
                                  "KNOWN VIOLATION: weather draw differs for nothing subkinds (N_condition=0.218)"],
         "floors_caps": "F floors 300/reachable cell (v4 predates enforcement; violations recorded in INVARIANT_CHECK)",
     },
-    "v42": {
+    "v431": {
         "seed": 20260706,
         "labels": "3 s / 1.5 s hop; presence=emission-activity (D3); per-class in-band SNR; zone3 at gates_3s",
         "subkind_weights": {"human": {"walk": 2}, "animal": {"slow_quad": 2}, "nothing_confuser_w": 1.8,
@@ -49,13 +49,15 @@ DECLARED = {
                   "mains": "v41 dB-above-floor, terrain-gated", "spur_150hz_p": 0.2},
         "documented_couplings": ["coupling_fc ~ profile stiffness (physical)",
                                  "vehicle excluded on vs<95 m/s (physical scope)"],
-        "floors_caps": "F floors 300/reachable cell; per-subkind ceilings from subkind_ceilings_v42.json (Change 2)",
+        "floors_caps": "F floors 300/reachable cell; per-subkind ceilings from subkind_ceilings_v431.json (Change 2)",
     },
 }
 
 sh = sorted(glob.glob(os.path.join(LABELS, "labels_shard_*.parquet")))
-# v4.2 [R5]: read the class-independent Q_j axes when present (absent for v4 -> skipped).
+# v4.3.1 [R5]: read the class-independent Q_j axes when present (absent for v4 -> skipped).
 import pyarrow.parquet as _pq
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 _avail = set(_pq.ParquetFile(sh[0]).schema.names)
 Q_AXES = [c for c in ("tier", "gain_log10", "quant_lsb", "rail_mv", "coupling_form") if c in _avail]
 cols = (["coarse", "subkind", "family", "noise_condition"]
@@ -88,7 +90,7 @@ ds["realized"]["condition_given_class"] = {
     str(cl): {str(k): round(float(v), 3) for k, v in g["noise_condition"].value_counts(normalize=True).items() if v > 0}
     for cl, g in df.groupby("coarse", observed=True)}
 
-# v4.2 [R5]: realized Q_j spans (gain continuous -> min/max/median; the rest categorical, inf-safe
+# v4.3.1 [R5]: realized Q_j spans (gain continuous -> min/max/median; the rest categorical, inf-safe
 # via astype(str)). These document the randomized sensor-chain axes for the reviewer + reproducibility.
 if Q_AXES:
     def _q_summary(a):
@@ -105,7 +107,7 @@ if Q_AXES:
 
 json.dump(ds, open(os.path.join(HERE, f"DATASHEET_{TAG}.json"), "w"), indent=1)
 # human-readable md
-md = [f"# Corpus datasheet — {TAG}", "", f"windows: {ds['n_windows']:,}", "", "## Declared design"]
+md = [f"# Dataset datasheet — {TAG}", "", f"windows: {ds['n_windows']:,}", "", "## Declared design"]
 for k, v in ds["declared"].items():
     md.append(f"- **{k}**: {json.dumps(v) if isinstance(v, (dict, list)) else v}")
 md += ["", "## Realized class mass (pi_train)", json.dumps(ds["realized"]["pi_class"]),
@@ -113,7 +115,7 @@ md += ["", "## Realized class mass (pi_train)", json.dumps(ds["realized"]["pi_cl
        "", "## Realized condition | class (neutrality view)",
        json.dumps(ds["realized"]["condition_given_class"], indent=1)]
 if ds["realized"].get("Q_j_spans"):
-    md += ["", "## Realized Q_j sensor-DR spans (v4.2 Change 3)",
+    md += ["", "## Realized Q_j sensor-DR spans (v4.3.1 Change 3)",
            json.dumps(ds["realized"]["Q_j_spans"], indent=1)]
 open(os.path.join(HERE, f"DATASHEET_{TAG}.md"), "w").write("\n".join(md))
 print(f"wrote DATASHEET_{TAG}.json + .md  (n={ds['n_windows']:,})")

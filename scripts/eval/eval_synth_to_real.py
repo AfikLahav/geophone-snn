@@ -10,7 +10,7 @@ Two kinds of numbers:
        per-head tau set so synthetic-val FAR-on-nothing = 1%, predict argmax>tau else nothing.
 Scaler = the synthetic training scaler (scaler.json). No real data leaks anywhere.
 
-Usage: python gap_study/v4_plan/eval_synth_to_real.py <GEO_OUT_dir> <synth_feat_dir>
+Usage: python dataset_validation/eval_synth_to_real.py <GEO_OUT_dir> <synth_feat_dir>
 """
 import os, sys, json, glob
 import numpy as np, pandas as pd
@@ -20,6 +20,8 @@ import warnings; warnings.filterwarnings("ignore")
 import torch, torch.nn as nn
 from spikingjelly.activation_based import neuron, surrogate, layer, functional
 from sklearn.metrics import roc_auc_score, accuracy_score, confusion_matrix, balanced_accuracy_score
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "simgeo_v4")); import features as F
 DEV = "cuda" if torch.cuda.is_available() else "cpu"; T = 4
@@ -29,7 +31,7 @@ REAL_DIR = os.path.join(ROOT, "Goephone-Project", "geophone_data")
 REALS = {"car.csv": "vehicle", "human.csv": "human", "car_nothing.csv": "nothing", "human_nothing.csv": "nothing"}
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "snn_v4_out", "E1_coupling_bump")
-SFEAT = sys.argv[2] if len(sys.argv) > 2 else r"G:/geophone_synth/features_v4b_3s"
+SFEAT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(_GEO_ROOT, "features_v4b_3s")
 scj = json.load(open(os.path.join(OUT, "scaler.json"))); FEATS = scj["features"]; NF = len(FEATS)
 mu = np.array(scj["mean"], np.float32); sd = np.array(scj["std"], np.float32); CLIPZ = scj["clip"]
 fidx = [F.FEATURE_NAMES.index(f) for f in FEATS]

@@ -63,8 +63,8 @@ report = {"n_real": {k: int(len(v)) for k, v in Xr.items()}}
 # ---- Part 1: domain-classifier AUROC for each synthetic version ----
 print("\n=== Part 1: domain separability (real vs synth) per version ===", flush=True)
 report["domain_auroc"] = {}
-synth_dirs = {"v2": r"G:/geophone_synth/features_v2", "v3": r"G:/geophone_synth/features_v3",
-              "v4": r"G:/geophone_synth/features_v4_3s"}
+synth_dirs = {"v2": os.path.join(_GEO_ROOT, "features_v2"), "v3": os.path.join(_GEO_ROOT, "features_v3"),
+              "v4": os.path.join(_GEO_ROOT, "features_v4_3s")}
 Xsynth = {}
 for ver, d in synth_dirs.items():
     if not glob.glob(os.path.join(d, "features_shard_*.parquet")):
@@ -118,9 +118,11 @@ def band_frac(x, lo, hi, tot=(20, 90)):
 # compare real human windows vs v4 synthetic human clean windows: upper/lower human-band ratio
 rh = pd.read_csv(os.path.join(REAL_DIR, "human.csv"))["amplitude"].to_numpy(np.float32) * SCALE
 real_hi = np.median([band_frac(rh[i:i+F.NW], 55, 90) for i in range(0, len(rh)-F.NW, HOP)])
-# v4 synthetic human scene waveforms (reconstruct a few from the corpus)
+# v4 synthetic human scene waveforms (reconstruct a few from the dataset)
 import sqlite3 as sq
-db = sq.connect(glob.glob(r"G:/geophone_synth/corpus_v4/shard_0.sqlite")[0])
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+db = sq.connect(glob.glob(os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite"))[0])
 rows = db.execute("SELECT w.clean_mv FROM scenes s JOIN waveforms w ON s.scene_id=w.scene_id "
                   "WHERE s.coarse='human' AND w.clean_mv IS NOT NULL LIMIT 60").fetchall()
 db.close()

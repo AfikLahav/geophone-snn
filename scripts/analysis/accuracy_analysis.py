@@ -13,8 +13,10 @@ from spikingjelly.activation_based import neuron, surrogate, layer, functional
 from sklearn.metrics import balanced_accuracy_score, accuracy_score, confusion_matrix
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "simgeo"))
 import features as F
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 OUT = os.path.join(HERE, "snn_v2_out"); PNG = os.path.join(OUT, "plots")
-FEAT_DIR = r"G:/geophone_synth/features_v2"; REAL_DIR = os.path.join(HERE, "Goephone-Project", "geophone_data")
+FEAT_DIR = os.path.join(_GEO_ROOT, "features_v2"); REAL_DIR = os.path.join(HERE, "Goephone-Project", "geophone_data")
 DEV = "cuda" if torch.cuda.is_available() else "cpu"; T, SCENE, HOP = 4, 30 * int(F.FS), 1500
 scj = json.load(open(os.path.join(OUT, "scaler.json"))); FEATURES = scj["features"]; NF = len(FEATURES)
 mu = np.array(scj["mean"], np.float32); sd = np.array(scj["std"], np.float32); CLIPZ = scj["clip"]

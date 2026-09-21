@@ -4,10 +4,10 @@ import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "simgeo_v4")); import label as L
 
-# --- 1. coupling_fc in corpus_v4 (disputed: 132 vs 52 Hz) ---
-db = sqlite3.connect(r"G:/geophone_synth/corpus_v4/shard_0.sqlite")
+# --- 1. coupling_fc in dataset_v431 (disputed: 132 vs 52 Hz) ---
+db = sqlite3.connect(os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite"))
 fc = np.array([r[0] for r in db.execute("SELECT coupling_fc FROM scenes WHERE coupling_fc IS NOT NULL")])
-print(f"[1] corpus_v4 coupling_fc: n={len(fc)} median={np.median(fc):.1f} IQR[{np.percentile(fc,25):.1f},{np.percentile(fc,75):.1f}] range[{fc.min():.1f},{fc.max():.1f}]")
+print(f"[1] dataset_v431 coupling_fc: n={len(fc)} median={np.median(fc):.1f} IQR[{np.percentile(fc,25):.1f},{np.percentile(fc,75):.1f}] range[{fc.min():.1f},{fc.max():.1f}]")
 
 # --- 2. synth clipping fraction (disputed 'showstopper' 10-13%) ---
 rows = db.execute("SELECT coarse,n_samples,noise_mv,clean_mv,clean_mv2 FROM scenes s JOIN waveforms w USING(scene_id) LIMIT 400").fetchall()
@@ -24,11 +24,13 @@ db.close()
 
 # --- 3. human impulsiveness: real vs synth (disputed magnitude 13.7 vs 0.23) ---
 from scipy.stats import kurtosis
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
 def kwin(x, nw=3000, hop=1500):
     return [kurtosis(x[i:i+nw]) for i in range(0, len(x)-nw+1, hop)]
 rh = pd.read_csv(os.path.join(ROOT,"Goephone-Project","geophone_data","human.csv"))["amplitude"].to_numpy(float)*1000
 rk = kwin(rh)
-db = sqlite3.connect(r"G:/geophone_synth/corpus_v4/shard_0.sqlite")
+db = sqlite3.connect(os.path.join(_GEO_ROOT, "dataset_v431/shard_0.sqlite"))
 sk = []
 for (n,nm,c1) in db.execute("SELECT n_samples,noise_mv,clean_mv FROM scenes s JOIN waveforms w USING(scene_id) WHERE coarse='human' LIMIT 60"):
     x = np.frombuffer(nm,np.float32).astype(np.float64)
@@ -37,6 +39,6 @@ for (n,nm,c1) in db.execute("SELECT n_samples,noise_mv,clean_mv FROM scenes s JO
 db.close()
 print(f"[3] human window kurtosis: REAL med {np.median(rk):.2f} (n={len(rk)}) | SYNTH med {np.median(sk):.2f} (n={len(sk)})")
 
-# --- 4. which corpus is the E2 reference trained on? confirm features_v4_3s = lowpass corpus_v4 ---
-print(f"[4] E2 reference build trains on features_v4_3s (from corpus_v4, LOWPASS coupling). "
-      f"bump corpus=corpus_v4b/features_v4b_3s is a separate experiment (EC).")
+# --- 4. which dataset is the E2 reference trained on? confirm features_v4_3s = lowpass dataset_v431 ---
+print(f"[4] E2 reference build trains on features_v4_3s (from dataset_v431, LOWPASS coupling). "
+      f"bump dataset=dataset_v431b/features_v4b_3s is a separate experiment (EC).")

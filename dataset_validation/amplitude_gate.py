@@ -1,36 +1,38 @@
 """v4.1 amplitude gate — verifies the gain calibration + line-fidelity changes on a rendered
-corpus (pilot or full). PASS criteria (plan §4):
+dataset (pilot or full). PASS criteria (plan §4):
   1. nothing-scene window RMS median in [8, 30] mV (real rigs: 7.4 / 25.2 mV)
   2. active-class window clip fraction (|x|>=255.9): mean < 1%
   3. synthetic HUMAN window kurtosis median > 3 (impulsiveness recovered; real 13.6)
   4. mains 50 Hz line, when present, 6-26 dB above local floor; spur-150Hz prevalence 0.10-0.30;
      machinery-line prevalence 0.15-0.35 (measured spectrally on nothing scenes)
   5. D2 reconstruction assert on 10 mixed scenes
-Usage: python amplitude_gate.py <corpus_dir> [--pilot]   (exit 1 on fail unless --pilot)
+Usage: python amplitude_gate.py <dataset_dir> [--pilot]   (exit 1 on fail unless --pilot)
 """
 import os, sys, glob, sqlite3, json
 import numpy as np
 from scipy.stats import kurtosis
 from scipy.signal import welch, medfilt
 
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 PILOT = "--pilot" in sys.argv
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
-CORPUS = args[0] if args else r"G:/geophone_synth/corpus_v41_pilot"
+DATASET = args[0] if args else os.path.join(_GEO_ROOT, "dataset_v4311_pilot")
 FS, NW, HOP = 1000.0, 3000, 1500
-rep = {"corpus": CORPUS, "checks": {}}
+rep = {"dataset": DATASET, "checks": {}}
 fails = []
 
-shards = sorted(glob.glob(os.path.join(CORPUS, "shard_*.sqlite")))
+shards = sorted(glob.glob(os.path.join(DATASET, "shard_*.sqlite")))
 rms_by, clip_by, kurt_h = {}, {}, []
 noth_psd = []                                                    # calm/wind/rain/ambient ONLY: the
 mix_ok = 0; mix_n = 0                                            # machinery/overflight/traffic confuser
-DR_MODE = False                                                  # v4.2: per-scene rail/quant columns
+DR_MODE = False                                                  # v4.3.1: per-scene rail/quant columns
 AMBIENT_SUBK = ("calm", "wind", "rain", "ambient")              # subkinds are deliberately tonal
 for sh in shards:
     db = sqlite3.connect(sh)
     scols = {r[1] for r in db.execute("PRAGMA table_info(scenes)")}
-    has_dr = ("rail_mv" in scols and "quant_lsb" in scols)      # v4.2 corpus -> per-scene rail/quant
+    has_dr = ("rail_mv" in scols and "quant_lsb" in scols)      # v4.3.1 dataset -> per-scene rail/quant
     DR_MODE = DR_MODE or has_dr
     sel = "s.coarse,w.n_samples,w.noise_mv,w.clean_mv,w.clean_mv2,s.subkind" + (
           ",s.rail_mv,s.quant_lsb" if has_dr else "")
@@ -47,7 +49,7 @@ for sh in shards:
             if len(a1) == n and len(a2) == n and np.isfinite(a1).all() and np.isfinite(a2).all():
                 mix_ok += 1
             x = x + a2
-        # v4.2 per-scene rail + quant on the model input (v4 -> 256 mV / continuous). inf rail = no clip.
+        # v4.3.1 per-scene rail + quant on the model input (v4 -> 256 mV / continuous). inf rail = no clip.
         xc = np.clip(x, -rail, rail) if np.isfinite(rail) else x
         if quant > 0:
             xc = np.round(xc / quant) * quant
@@ -62,7 +64,7 @@ for sh in shards:
             f, p = welch(xc - xc.mean(), fs=FS, nperseg=2048)
             noth_psd.append(p)
 
-# 1) nothing-scene window RMS. v4.2 [R6]: the gain nuisance is RANDOMIZED (uniform-in-dB span), not
+# 1) nothing-scene window RMS. v4.3.1 [R6]: the gain nuisance is RANDOMIZED (uniform-in-dB span), not
 # pinned to a point -> verify the SPAN BRACKETS the 3 real rigs (0.08 / 7.4 / 25.2 mV) rather than a
 # narrow median band. (v4 keeps the median-in-[8,30] check.)
 noth = np.array(rms_by.get("nothing", [np.nan]), float); noth = noth[np.isfinite(noth)]
@@ -82,7 +84,7 @@ else:
     rep["checks"]["nothing_rms_median_mv"] = round(noth_med, 2)
     if not (8.0 <= noth_med <= 30.0):
         fails.append(f"nothing RMS median {noth_med:.1f} mV outside [8,30]")
-# 2) clipping. v4.2 [R6]: clipping is now a RANDOMIZED nuisance (rail in {inf,512,256}) the model
+# 2) clipping. v4.3.1 [R6]: clipping is now a RANDOMIZED nuisance (rail in {inf,512,256}) the model
 # must be invariant to, NOT a defect to minimize. With most scenes drawing inf/512, the TYPICAL
 # window is unclipped (median ~0) and the clipped tail stays bounded. The rail draw's
 # class-INDEPENDENCE is verified by the N gate (V(class, rail_mv) ~ 0), NOT here: realized clip

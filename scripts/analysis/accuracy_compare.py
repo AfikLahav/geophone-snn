@@ -10,7 +10,9 @@ import numpy as np, pandas as pd, torch, torch.nn as nn
 from spikingjelly.activation_based import neuron, surrogate, layer, functional
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, os.path.join(HERE, "simgeo"))
 import features as F
-OUT = os.path.join(HERE, "snn_v2_out"); FEAT_DIR = r"G:/geophone_synth/features_v2"
+
+_GEO_ROOT = __import__("os").environ.get("GEO_SYNTH_ROOT", __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), "..", "..", "geophone_synth"))
+OUT = os.path.join(HERE, "snn_v2_out"); FEAT_DIR = os.path.join(_GEO_ROOT, "features_v2")
 REAL_DIR = os.path.join(HERE, "Goephone-Project", "geophone_data"); DEV = "cuda" if torch.cuda.is_available() else "cpu"
 T, THR, SCENE, HOP = 4, 0.5, 30 * int(F.FS), 1500
 sc = json.load(open(os.path.join(OUT, "scaler.json"))); FEATURES = sc["features"]; NF = len(FEATURES)
